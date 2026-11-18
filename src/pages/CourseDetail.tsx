@@ -1,6 +1,7 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   ChevronLeft,
+  UserRound,
   PlayCircle,
   FileText,
   ListChecks,
@@ -16,7 +17,7 @@ import {
 } from 'lucide-react';
 import { courses, totalLessons } from '../data/courses';
 import { useApp, eur } from '../store/AppStore';
-import { TopBar, SmartImage, ProgressBar } from '../components/ui';
+import { TopBar, SmartImage, ProgressBar, Avatar } from '../components/ui';
 
 const lessonIcon = { video: PlayCircle, pdf: FileText, quiz: ListChecks };
 
@@ -77,6 +78,31 @@ export default function CourseDetail() {
           <span className="flex items-center gap-1.5">
             <Star className="h-4 w-4 fill-gold-400 text-gold-400" aria-hidden /> {course.level}
           </span>
+        </div>
+
+        {/* R22: Dozentin */}
+        <div className="mt-4 flex items-center gap-3 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card">
+          <Avatar name={course.instructor.split(' ')[0]} gradient="linear-gradient(135deg, #2E5BF0, #7A96F8)" size={44} />
+          <div className="min-w-0 flex-1">
+            <p className="text-[10.5px] font-bold uppercase tracking-wide text-slate-400">Ausbildung durch</p>
+            <p className="truncate text-[13.5px] font-bold text-deep-900">{course.instructor}</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-royal-50 px-2.5 py-1 text-[10.5px] font-bold text-royal-700">Academy ✦</span>
+        </div>
+
+        {/* R21: Für wen geeignet */}
+        <div className="mt-3 rounded-2xl border border-mist-200 bg-white p-4 shadow-card">
+          <p className="flex items-center gap-2 text-[13px] font-bold text-deep-900">
+            <UserRound className="h-4 w-4 text-royal-600" aria-hidden /> Für wen ist dieser Kurs?
+          </p>
+          <ul className="mt-2.5 space-y-1.5">
+            {course.audience.map((a) => (
+              <li key={a} className="flex items-start gap-2 text-[12.5px] leading-relaxed text-slate-600">
+                <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-royal-500" aria-hidden />
+                {a}
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* Beschreibung */}

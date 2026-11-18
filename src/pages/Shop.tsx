@@ -7,11 +7,19 @@ import { TopBar, CartButton, Chip, ProductCard, ProductCardMini, EmptyState, Bel
 
 const vendors = ['Alle Marken', ...Array.from(new Set(products.map((p) => p.vendor)))];
 
+/** Brand-Param (z. B. „ZOLA“ aus dem Home-Carousel) auf den exakten Vendor-Namen auflösen */
+const resolveVendor = (b: string | null | undefined): string => {
+  if (!b) return 'Alle Marken';
+  return vendors.find((v) => v.toLowerCase() === b.toLowerCase()) ?? 'Alle Marken';
+};
+
 export default function Shop() {
   const [params, setParams] = useSearchParams();
   const catParam = (params.get('cat') as CategoryId | null) ?? 'alle';
+  const brandParam = params.get('brand');
   const [query, setQuery] = useState('');
-  const [vendor, setVendor] = useState('Alle Marken');
+  const [vendor, setVendor] = useState(() => resolveVendor(brandParam));
+  const [neuOnly, setNeuOnly] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [sort, setSort] = useState<'beliebt' | 'preis-auf' | 'preis-ab'>('beliebt');
   const [favOnly, setFavOnly] = useState(false);
@@ -22,6 +30,7 @@ export default function Shop() {
     if (catParam !== 'alle') list = list.filter((p) => p.category === catParam);
     if (favOnly) list = list.filter((p) => favorites.includes(p.id));
     if (vendor !== 'Alle Marken') list = list.filter((p) => p.vendor === vendor);
+    if (neuOnly) list = list.filter((p) => p.badge === 'Neu');
     if (query.trim()) {
       const q = query.trim().toLowerCase();
       list = list.filter(
@@ -35,7 +44,7 @@ export default function Shop() {
     if (sort === 'preis-auf') list = [...list].sort((a, b) => a.price - b.price);
     if (sort === 'preis-ab') list = [...list].sort((a, b) => b.price - a.price);
     return list;
-  }, [catParam, vendor, query, sort, favOnly, favorites]);
+  }, [catParam, vendor, query, sort, favOnly, favorites, neuOnly]);
 
   const setCat = (c: string) => {
     if (c === 'alle') params.delete('cat');
@@ -95,11 +104,32 @@ export default function Shop() {
           {categories.map((c) => (
             <Chip key={c.id} active={catParam === c.id} onClick={() => setCat(c.id)}>
               {c.label}
+              <span className={"ml-1 text-[10.5px] font-bold " + (catParam === c.id ? 'text-royal-200' : 'text-slate-300')}>
+                {c.id === 'alle' ? products.length : products.filter((p) => p.category === c.id).length}
+              </span>
             </Chip>
           ))}
           <Chip active={favOnly} onClick={() => setFavOnly((v) => !v)}>
             ♥ Favoriten{favorites.length > 0 ? ` · ${favorites.length}` : ''}
           </Chip>
+          <Chip active={neuOnly} onClick={() => setNeuOnly((v) => !v)}>
+            ✦ Neu
+          </Chip>
+          {(query || vendor !== 'Alle Marken' || catParam !== 'alle' || favOnly || neuOnly || sort !== 'beliebt') && (
+            <button
+              onClick={() => {
+                setQuery('');
+                setVendor('Alle Marken');
+                setCat('alle');
+                setFavOnly(false);
+                setNeuOnly(false);
+                setSort('beliebt');
+              }}
+              className="tap shrink-0 rounded-full border border-red-200 bg-red-50 px-3.5 py-1.5 text-[12.5px] font-bold text-red-500"
+            >
+              ⟲ Zurücksetzen
+            </button>
+          )}
         </div>
 
         {/* Filter-Panel */}

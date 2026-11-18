@@ -5,6 +5,7 @@ const CDN = 'https://cdn.shopify.com/s/files/1/0639/5812/2716/files/';
 
 export interface Member {
   id: string;
+  academy?: boolean;
   name: string;
   role: string;
   studio: string;
@@ -67,6 +68,7 @@ export const members: Member[] = [
   },
   {
     id: 'm-aylin',
+    academy: true,
     name: 'Aylin Kaya',
     role: 'Lash Trainerin',
     studio: 'Studio Kaya',
@@ -131,7 +133,7 @@ export const posts: Post[] = [
     authorId: 'm-aylin',
     type: 'tipp',
     title: 'Mein Pad-Trick für sehr feine Wimpern',
-    text: 'Feine, kurze Wimpern kleben gern ab. Ich kombiniere die TEDDY Pads (Ultra Sticky) mit einem Hauch Balm Glue am inneren Eck – hält perfekt, ohne dass Haare ausreißen. Wer arbeitet ähnlich?',
+    text: 'Feine, kurze Wimpern kleben gern ab. Ich kombiniere die TEDDY Pads (Ultra Sticky) mit einem Hauch Balm Glue am inneren Eck – hält perfekt, ohne dass Haare ausreißen. Wer arbeitet ähnlich? #KoreanLift',
     images: [CDN + 'Maxymova_Silikonpads_Teddy.png?width=900'],
     ago: 'vor 5 Std.',
     likes: 61,
@@ -175,7 +177,7 @@ export const posts: Post[] = [
     authorId: 'm-lena',
     type: 'tipp',
     title: 'So fotografiere ich Vorher-Nachher konsistent',
-    text: 'Immer gleicher Platz am Fenster, gleicher Winkel, kein Blitz, Vorher-Foto vor dem Entfernen der Pads machen. Meine Kundinnen erkennen sich wieder – und die Wirkung deiner Arbeit wird sichtbar. Kamera-Grid an!',
+    text: 'Immer gleicher Platz am Fenster, gleicher Winkel, kein Blitz, Vorher-Foto vor dem Entfernen der Pads machen. Meine Kundinnen erkennen sich wieder – und die Wirkung deiner Arbeit wird sichtbar. Kamera-Grid an! #VorherNachher #ProfiTips',
     images: [],
     ago: 'vor 1 Tag',
     likes: 132,

@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { Award, CalendarDays, Fingerprint, Download, Share2, GraduationCap } from 'lucide-react';
+import { Award, CalendarDays, Fingerprint, Download, GraduationCap, Copy } from 'lucide-react';
 import { certificates } from '../data/user';
 import { courses } from '../data/courses';
 import { useApp } from '../store/AppStore';
@@ -7,7 +7,7 @@ import { TopBar, EmptyState } from '../components/ui';
 
 export default function Certificates() {
   const { courseId } = useParams();
-  const { courseProgress, enrolled } = useApp();
+  const { courseProgress, enrolled, toast } = useApp();
   const shown = courseId ? certificates.filter((c) => c.courseId === courseId) : certificates;
   const active = courseId ?? shown[0]?.courseId;
   const cert = certificates.find((c) => c.courseId === active);
@@ -109,8 +109,14 @@ export default function Certificates() {
                 <button className="tap flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-deep-900 text-[12.5px] font-bold text-white shadow-card">
                   <Download className="h-4 w-4" aria-hidden /> Als PDF (Demo)
                 </button>
-                <button className="tap flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-mist-200 bg-white text-[12.5px] font-bold text-deep-900 shadow-card">
-                  <Share2 className="h-4 w-4" aria-hidden /> Teilen
+                <button
+                  onClick={async () => {
+                    try { await navigator.clipboard.writeText('Zertifikat ' + cert.certId + ' – GLAMLOOX Academy (Demo)'); } catch { /* Demo */ }
+                    toast('Zertifikats-Nachweis kopiert', 'star');
+                  }}
+                  className="tap flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-mist-200 bg-white text-[12.5px] font-bold text-deep-900 shadow-card"
+                >
+                  <Copy className="h-4 w-4" aria-hidden /> Nachweis kopieren
                 </button>
               </div>
 

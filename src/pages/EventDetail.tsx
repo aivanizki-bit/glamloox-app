@@ -9,12 +9,14 @@ import {
   CheckCircle2,
   Info,
   Radio,
+  ChevronRight,
   Bell,
   BellOff,
 } from 'lucide-react';
 import { events, formatDate } from '../data/events';
+import { members } from '../data/community';
 import { useApp, eur } from '../store/AppStore';
-import { TopBar, SmartImage } from '../components/ui';
+import { TopBar, SmartImage, Avatar } from '../components/ui';
 
 export default function EventDetail() {
   const { eventId } = useParams();
@@ -97,6 +99,21 @@ export default function EventDetail() {
           </p>
         </div>
 
+        {/* R25: Teilnehmer-Avatare */}
+        <div className="mt-4 flex items-center gap-3 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card">
+          <div className="flex -space-x-2.5">
+            {members.slice(0, 4).map((m) => (
+              <Avatar key={m.id} name={m.name} gradient={m.gradient} size={34} ring />
+            ))}
+            <span className="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-mist-100 text-[10.5px] font-bold text-slate-500 ring-2 ring-white">
+              +8
+            </span>
+          </div>
+          <p className="text-[12px] leading-snug text-slate-500">
+            <span className="font-bold text-deep-900">8 Kolleginnen</span> nehmen auch teil – tausch dich aus!
+          </p>
+        </div>
+
         {/* Beschreibung */}
         <p className="mt-4 text-[13.5px] leading-relaxed text-slate-600">{event.description}</p>
 
@@ -164,6 +181,23 @@ export default function EventDetail() {
             )}
           </button>
         )}
+
+        {/* R26: Community-Cross-Link */}
+        <Link
+          to="/community"
+          className="tap mt-3 flex items-center justify-between rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card"
+        >
+          <span className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-royal-50 text-royal-600">
+              <Users className="h-[18px] w-[18px]" aria-hidden />
+            </span>
+            <span>
+              <span className="block text-[13px] font-bold text-deep-900">Im Community-Feed fragen</span>
+              <span className="block text-[11px] text-slate-400">Wer nimmt sonst teil? Frag in der Runde</span>
+            </span>
+          </span>
+          <ChevronRight className="h-4 w-4 text-slate-300" aria-hidden />
+        </Link>
 
         {/* Erinnerung */}
         <button

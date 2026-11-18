@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { ImagePlus, X, SendHorizontal } from 'lucide-react';
 import { demoUser } from '../data/user';
@@ -23,17 +24,25 @@ const types = [
 
 export default function CreatePost() {
   const navigate = useNavigate();
-  const { addUserPost, toast } = useApp();
-  const [type, setType] = useState<(typeof types)[number]['id']>('ergebnis');
-  const [title, setTitle] = useState('');
-  const [text, setText] = useState('');
-  const [image, setImage] = useState<string | null>(null);
+  const { addUserPost, updateUserPost, allPosts, toast } = useApp();
+  const [params] = useSearchParams();
+  const editId = params.get('edit');
+  const editPost = editId ? allPosts.find((x) => x.id === editId) : undefined;
+  const [type, setType] = useState<(typeof types)[number]['id']>(editPost?.type ?? 'ergebnis');
+  const [title, setTitle] = useState(editPost?.title ?? '');
+  const [text, setText] = useState(editPost?.text ?? '');
+  const [image, setImage] = useState<string | null>(editPost?.images[0] ?? null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const valid = text.trim().length >= 5;
 
   const publish = () => {
     if (!valid) return;
+    if (editPost) {
+      updateUserPost(editPost.id, { title: title.trim() || undefined, text: text.trim() });
+      navigate('/community');
+      return;
+    }
     addUserPost({
       id: 'up' + Date.now(),
       authorId: 'm-lena',
@@ -51,7 +60,7 @@ export default function CreatePost() {
   return (
     <div className="anim-slide-in min-h-full bg-mist-50 pb-28">
       <TopBar
-        title="Neuer Beitrag"
+        title={editPost ? "Beitrag bearbeiten" : "Neuer Beitrag"}
         back="/community"
         right={
           <button
@@ -187,7 +196,7 @@ export default function CreatePost() {
           }`}
         >
           <SendHorizontal className="h-5 w-5" aria-hidden />
-          In der Community veröffentlichen
+          ${editPost ? 'Änderungen speichern' : 'In der Community veröffentlichen'}
         </button>
       </div>
     </div>

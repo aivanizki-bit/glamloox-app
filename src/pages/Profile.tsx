@@ -19,7 +19,7 @@ import { TopBar, Avatar, ProgressBar, BellButton } from '../components/ui';
 import { events } from '../data/events';
 
 export default function Profile() {
-  const { orders, favorites, enrolled, certificates, eventRegs, courseProgress, rewardPoints, savedPosts } = useApp();
+  const { orders, favorites, enrolled, certificates, eventRegs, courseProgress, rewardPoints, savedPosts, allPosts } = useApp();
   const activeCourse = courses.find((c) => c.id === 'korean-powder-2')!;
   const prog = courseProgress(activeCourse.id);
   const nextEvents = events.filter((e) => eventRegs.includes(e.id));
@@ -97,6 +97,36 @@ export default function Profile() {
           </p>
         </Link>
       </div>
+
+      {/* R36: Statistik-Reihe */}
+      <div className="grid grid-cols-4 gap-2 px-4 pt-4">
+        {[
+          ['Bestellungen', orders.length.toString()],
+          ['Beiträge', allPosts.filter((p) => p.authorId === 'm-lena').length.toString()],
+          ['Kurse', enrolled.length.toString()],
+          ['Favoriten', favorites.length.toString()],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-2xl border border-mist-200 bg-white py-3 text-center shadow-card">
+            <p className="text-[19px] font-extrabold text-deep-950">{value}</p>
+            <p className="text-[9.5px] font-semibold text-slate-400">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* R37: Studio-Card */}
+      <Link
+        to="/community/member/m-lena"
+        className="tap mx-4 mt-3 flex items-center gap-3.5 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-royal-50 text-royal-600">
+          <MapPin className="h-[18px] w-[18px]" aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[14px] font-bold text-deep-900">{demoUser.studio}</span>
+          <span className="block text-[11.5px] text-slate-400">{demoUser.city} · Di–Sa 9–18 Uhr (Demo)</span>
+        </span>
+        <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" aria-hidden />
+      </Link>
 
       {/* Menü */}
       <div className="mt-4 overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-card">

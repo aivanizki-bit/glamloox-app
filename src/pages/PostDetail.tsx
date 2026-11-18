@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Heart, MessageCircle, Bookmark, SendHorizontal, ChevronLeft, Share2 } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, SendHorizontal, ChevronLeft, Share2, Trash2, ZoomIn, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { memberById } from '../data/community';
 import { demoUser } from '../data/user';
 import { useApp } from '../store/AppStore';
 import { SmartImage, Avatar } from '../components/ui';
+import { renderHashtags } from './Community';
 import { products } from '../data/products';
 
 const typeLabel = { ergebnis: 'Ergebnis', frage: 'Frage', tipp: 'Tipp' };
@@ -13,9 +14,10 @@ const typeLabel = { ergebnis: 'Ergebnis', frage: 'Frage', tipp: 'Tipp' };
 export default function PostDetail() {
   const { postId } = useParams();
   const navigate = useNavigate();
-  const { allPosts, likedPosts, savedPosts, toggleLike, toggleSave, comments, addComment, toggleCommentLike, isCommentLiked, toast } = useApp();
+  const { allPosts, likedPosts, savedPosts, toggleLike, toggleSave, comments, addComment, toggleCommentLike, isCommentLiked, toast, deleteComment } = useApp();
   const post = allPosts.find((p) => p.id === postId);
   const [draft, setDraft] = useState('');
+  const [lightbox, setLightbox] = useState<number | null>(null);
 
   if (!post) {
     return (
@@ -61,6 +63,14 @@ export default function PostDetail() {
         >
           <Share2 className="h-[18px] w-[18px]" aria-hidden />
         </button>
+        {post.authorId === 'm-lena' && (
+          <Link
+            to={`/community/new?edit=${post.id}`}
+            className="tap flex h-9 items-center rounded-full border border-mist-200 px-3 text-[12px] font-bold text-slate-500"
+          >
+            Bearbeiten
+          </Link>
+        )}
         <span className="rounded-full bg-royal-50 px-2.5 py-1 text-[11px] font-bold text-royal-700">
           {typeLabel[post.type]}
         </span>
@@ -87,15 +97,28 @@ export default function PostDetail() {
             {post.title}
           </h2>
         )}
-        <p className="mt-1.5 text-[14px] leading-relaxed text-slate-600">{post.text}</p>
+        <p className="mt-1.5 text-[14px] leading-relaxed text-slate-600">{renderHashtags(post.text)}</p>
       </div>
 
       {/* Bilder */}
       {post.images.length > 0 && (
         <div className={`grid gap-1 ${post.images.length > 1 ? 'grid-cols-2' : ''}`}>
           {post.images.map((img, i) => (
-            <SmartImage key={i} src={img} alt={`Bild ${i + 1}`} className="w-full" imgClass="aspect-square" />
+            <button key={i} onClick={() => setLightbox(i)} aria-label={`Bild ${i + 1} vergrößern`} className="relative">
+              <SmartImage src={img} alt={`Bild ${i + 1}`} className="w-full" imgClass="aspect-square" />
+              <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-deep-950/60 px-2 py-0.5 text-[9.5px] font-bold text-white backdrop-blur">
+                <ZoomIn className="h-3 w-3" aria-hidden /> Zoom
+              </span>
+            </button>
           ))}
+        </div>
+      )}
+      {lightbox !== null && (
+        <div className="anim-fade-in absolute inset-0 z-50 flex items-center justify-center bg-deep-950/95 p-4" onClick={() => setLightbox(null)}>
+          <button aria-label="Zoom schließen" className="tap absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur">
+            <X className="h-5 w-5" aria-hidden />
+          </button>
+          <img src={post.images[lightbox]} alt={`Bild ${lightbox + 1} vergrößert`} className="max-h-[75%] w-auto max-w-full rounded-2xl object-contain shadow-float" />
         </div>
       )}
 
@@ -167,6 +190,15 @@ export default function PostDetail() {
                     <span className="ml-2 font-medium text-slate-400">{c.ago}</span>
                   </p>
                   <p className="mt-0.5 text-[13px] leading-relaxed text-slate-600">{c.text}</p>
+                  {c.id.startsWith('uc') && (
+                    <button
+                      onClick={() => deleteComment(post.id, c.id)}
+                      aria-label="Eigener Kommentar löschen"
+                      className="tap mt-1 flex items-center gap-1 text-[11px] font-semibold text-red-400"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden /> Löschen
+                    </button>
+                  )}
                   <button
                     onClick={() => toggleCommentLike(post.id, c.id)}
                     aria-label={isCommentLiked(post.id, c.id) ? 'Like entfernen' : 'Kommentar liken'}

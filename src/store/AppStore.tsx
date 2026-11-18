@@ -17,7 +17,6 @@ import {
   enrolledCourseIds,
   initiallyRegisteredEvents,
   initialOrders,
-  certificates,
   type DemoOrder,
 } from '../data/user';
 
@@ -62,6 +61,10 @@ interface PersistedState {
   likedPosts: string[];
   savedPosts: string[];
   likedComments: string[];
+  lessonNotes: Record<string, string>;
+  pointsLog: { id: string; title: string; delta: number }[];
+  earnedCerts: string[];
+  pushHintDismissed: boolean;
   comments: Record<string, Comment[]>;
   userPosts: Post[];
   rewardPoints: number;
@@ -84,6 +87,14 @@ const DEFAULT_STATE: PersistedState = {
   likedPosts: [],
   savedPosts: [],
   likedComments: [],
+  lessonNotes: {},
+  pointsLog: [
+    { id: 'pl1', title: 'Willkommensbonus', delta: 150 },
+    { id: 'pl2', title: 'Kurs abgeschlossen: REANIMATION DER WIMPERN™', delta: 100 },
+    { id: 'pl3', title: 'Community-Beitrag veröffentlicht', delta: 25 },
+  ],
+  earnedCerts: ['reanimation'],
+  pushHintDismissed: false,
   comments: {},
   userPosts: [],
   rewardPoints: demoUser.rewardPoints,
@@ -130,11 +141,21 @@ export interface AppState extends PersistedState {
   checkout: () => DemoOrder;
   // Community
   toggleLike: (postId: string) => void;
+  setLessonNote: (lessonId: string, text: string) => void;
+  dismissPushHint: () => void;
+  setOffline: (v: boolean) => void;
+  offline: boolean;
+  feedbackOpen: boolean;
+  openFeedback: () => void;
+  closeFeedback: () => void;
   toggleCommentLike: (postId: string, commentId: string) => void;
   isCommentLiked: (postId: string, commentId: string) => boolean;
   toggleSave: (postId: string) => void;
   addComment: (postId: string, text: string) => void;
   addUserPost: (post: Post) => void;
+  updateUserPost: (postId: string, patch: { title?: string; text: string }) => void;
+  deleteUserPost: (postId: string) => void;
+  deleteComment: (postId: string, commentId: string) => void;
   allPosts: Post[];
   // Notifications
   unreadNotifs: number;
@@ -152,7 +173,7 @@ export interface AppState extends PersistedState {
   toast: (msg: string, icon?: Toast['icon']) => void;
   resetDemo: () => void;
   updateSettings: (s: Partial<PersistedState['settings']>) => void;
-  certificates: typeof certificates;
+  certificates: { id: string; courseId: string; issuedISO: string; certId: string }[];
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -160,6 +181,11 @@ const Ctx = createContext<AppState | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<PersistedState>(load);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [offline, setOfflineState] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const setOffline = useCallback((v: boolean) => setOfflineState(v), []);
+  const openFeedback = useCallback(() => setFeedbackOpen(true), []);
+  const closeFeedback = useCallback(() => setFeedbackOpen(false), []);
   const stateRef = useRef(state);
   useEffect(() => {
     stateRef.current = state;
@@ -250,15 +276,73 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState((s) => {
       const isDone = !!s.progress[lessonId];
       const next = done ?? !isDone;
-      return { ...s, progress: { ...s.progress, [lessonId]: next } };
+      const progress = { ...s.progress, [lessonId]: next };
+      // Auto-Zertifikat: eingeschriebene Kurse bei 100 % abschließen
+      let earnedCerts = s.earnedCerts;
+      let newCert: string | null = null;
+      for (const cid of s.enrolled) {
+        const c = courses.find((x) => x.id === cid);
+        if (!c || s.earnedCerts.includes(cid)) continue;
+        const all = allLessonIds(c);
+        if (all.length > 0 && all.every((id) => progress[id])) {
+          earnedCerts = [...s.earnedCerts, cid];
+          newCert = c.shortTitle;
+        }
+      }
+      const notifications = newCert
+        ? [
+            {
+              id: 'nc' + Date.now(),
+              kind: 'course' as const,
+              title: 'Zertifikat freigeschaltet 🏆',
+              body: newCert + ' abgeschlossen – dein Zertifikat wartet im Profil.',
+              ago: 'gerade eben',
+              read: false,
+              link: '/profile/certificates',
+            },
+            ...s.notifications,
+          ].slice(0, 20)
+        : s.notifications;
+      const pointsLog = newCert
+        ? [{ id: 'pl' + Date.now(), title: 'Zertifikat: ' + newCert, delta: 100 }, ...s.pointsLog]
+        : s.pointsLog;
+      return { ...s, progress, earnedCerts, notifications, pointsLog };
     });
   }, []);
 
   const enrollCourse = useCallback(
     (courseId: string) => {
-      setState((s) =>
-        s.enrolled.includes(courseId) ? s : { ...s, enrolled: [...s.enrolled, courseId] },
-      );
+      setState((s) => {
+        if (s.enrolled.includes(courseId)) return s;
+        const c = courses.find((x) => x.id === courseId);
+        // Auto-Zertifikat: bereits komplett abgeschlossene Kurse bekommen direkt das Zertifikat
+        const all = c ? allLessonIds(c) : [];
+        const alreadyDone = all.length > 0 && all.every((id) => s.progress[id]);
+        return {
+          ...s,
+          enrolled: [...s.enrolled, courseId],
+          earnedCerts: alreadyDone && !s.earnedCerts.includes(courseId) ? [...s.earnedCerts, courseId] : s.earnedCerts,
+          notifications:
+            alreadyDone && !s.earnedCerts.includes(courseId)
+              ? [
+                  {
+                    id: 'nc' + Date.now(),
+                    kind: 'course' as const,
+                    title: 'Zertifikat freigeschaltet 🏆',
+                    body: (c?.shortTitle ?? 'Kurs') + ' abgeschlossen – dein Zertifikat wartet im Profil.',
+                    ago: 'gerade eben',
+                    read: false,
+                    link: '/profile/certificates',
+                  },
+                  ...s.notifications,
+                ].slice(0, 20)
+              : s.notifications,
+          pointsLog:
+            alreadyDone && !s.earnedCerts.includes(courseId)
+              ? [{ id: 'pl' + Date.now(), title: 'Zertifikat: ' + (c?.shortTitle ?? 'Kurs'), delta: 100 }, ...s.pointsLog]
+              : s.pointsLog,
+        };
+      });
       const c = courses.find((x) => x.id === courseId);
       toast(`Eingeschrieben: ${c?.shortTitle ?? 'Kurs'}`, 'star');
     },
@@ -310,6 +394,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       cart: [],
       discount: null,
       rewardPoints: s.rewardPoints + 50,
+      pointsLog: [{ id: 'pl' + Date.now(), title: 'Bestellbonus ' + order.id, delta: 50 }, ...s.pointsLog].slice(0, 12),
       notifications: [
         { id: 'no' + Date.now(), kind: 'order' as const, title: 'Bestellung ' + order.id + ' bestätigt', body: 'Danke! Deine Bestellung ist bei uns eingegangen.', ago: 'gerade eben', read: false, link: '/profile/orders' },
         ...s.notifications,
@@ -328,6 +413,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
     });
   }, []);
+
+  const setLessonNote = useCallback((lessonId: string, text: string) => {
+    setState((s) => ({ ...s, lessonNotes: { ...s.lessonNotes, [lessonId]: text } }));
+  }, []);
+  const dismissPushHint = useCallback(() => setState((s) => ({ ...s, pushHintDismissed: true })), []);
 
   const toggleCommentLike = useCallback((postId: string, commentId: string) => {
     setState((s) => {
@@ -374,6 +464,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (post: Post) => {
       setState((s) => ({ ...s, userPosts: [post, ...s.userPosts] }));
       toast('Beitrag veröffentlicht', 'check');
+    },
+    [toast],
+  );
+
+  const updateUserPost = useCallback((postId: string, patch: { title?: string; text: string }) => {
+    setState((s) => ({
+      ...s,
+      userPosts: s.userPosts.map((p) => (p.id === postId ? { ...p, ...patch } : p)),
+    }));
+    toast('Beitrag aktualisiert', 'check');
+  }, [toast]);
+  const deleteUserPost = useCallback(
+    (postId: string) => {
+      setState((s) => ({ ...s, userPosts: s.userPosts.filter((p) => p.id !== postId) }));
+      toast('Beitrag gelöscht', 'info');
+    },
+    [toast],
+  );
+  const deleteComment = useCallback(
+    (postId: string, commentId: string) => {
+      setState((s) => {
+        const list = (s.comments[postId] ?? []).filter((c) => c.id !== commentId);
+        return { ...s, comments: { ...s.comments, [postId]: list } };
+      });
+      toast('Kommentar gelöscht', 'info');
     },
     [toast],
   );
@@ -457,6 +572,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const clearDiscount = useCallback(() => setState((s) => ({ ...s, discount: null })), []);
 
+  // Zertifikate dynamisch aus earnedCerts generieren
+  const certificates = useMemo(
+    () =>
+      state.earnedCerts.map((cid, i) => ({
+        id: 'cert-' + cid,
+        courseId: cid,
+        issuedISO: i === 0 ? '2026-09-12' : new Date().toISOString().slice(0, 10),
+        certId: 'GLX-AC-' + cid.slice(0, 4).toUpperCase() + '-' + (2026 + i),
+      })),
+    [state.earnedCerts],
+  );
+
   const value: AppState = {
     ...state,
     addToCart,
@@ -476,9 +603,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleLike,
     toggleCommentLike,
     isCommentLiked,
+    setLessonNote,
+    dismissPushHint,
+    setOffline,
+    offline,
+    feedbackOpen,
+    openFeedback,
+    closeFeedback,
     toggleSave,
     addComment,
     addUserPost,
+    updateUserPost,
+    deleteUserPost,
+    deleteComment,
     allPosts,
     toasts,
     toast,

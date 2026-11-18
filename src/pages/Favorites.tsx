@@ -1,16 +1,40 @@
 import { Link } from 'react-router-dom';
-import { Heart, ShoppingBag } from 'lucide-react';
+import { Heart, ShoppingBag, Share2, ShoppingBasket } from 'lucide-react';
 import { products } from '../data/products';
 import { useApp, eur } from '../store/AppStore';
 import { TopBar, SmartImage, EmptyState, HeartButton, ProductCardMini } from '../components/ui';
 
 export default function Favorites() {
-  const { favorites, addToCart } = useApp();
+  const { favorites, addToCart, toast } = useApp();
   const favProducts = products.filter((p) => favorites.includes(p.id));
 
   return (
     <div className="anim-slide-in min-h-full bg-mist-50 pb-6">
       <TopBar title="Meine Favoriten" back="/profile" />
+
+      {favProducts.length > 0 && (
+        <div className="flex gap-2 px-4 pb-1 pt-3">
+          <button
+            onClick={() => {
+              favProducts.forEach((p) => addToCart(p));
+              toast(favProducts.length + ' Favoriten im Warenkorb', 'cart');
+            }}
+            className="tap flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-deep-900 text-[13px] font-bold text-white shadow-card"
+          >
+            <ShoppingBasket className="h-4 w-4" aria-hidden /> Alle in den Warenkorb
+          </button>
+          <button
+            onClick={async () => {
+              try { await navigator.clipboard.writeText(location.href); } catch { /* Demo */ }
+              toast('Wunschliste-Link kopiert (Demo)', 'star');
+            }}
+            aria-label="Wunschliste teilen"
+            className="tap flex h-11 w-11 items-center justify-center rounded-xl border border-mist-200 bg-white text-deep-900 shadow-card"
+          >
+            <Share2 className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+      )}
 
       {favProducts.length === 0 ? (
         <>

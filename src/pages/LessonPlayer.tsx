@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   Play,
+  Pencil,
   Pause,
   RotateCcw,
   CheckCircle2,
@@ -29,7 +30,7 @@ const fmt = (s: number): string =>
 export default function LessonPlayer() {
   const { courseId, lessonId } = useParams();
   const course = courses.find((c) => c.id === courseId);
-  const { progress, toggleLesson, toast } = useApp();
+  const { progress, toggleLesson, toast, lessonNotes, setLessonNote } = useApp();
 
   const flat = useMemo(
     () => (course ? course.modules.flatMap((m) => m.lessons.map((l) => ({ ...l, moduleId: m.id }))) : []),
@@ -44,6 +45,7 @@ export default function LessonPlayer() {
   const [time, setTime] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(25);
+  const [note, setNote] = useState(lessonNotes[lessonId ?? ''] ?? '');
   const barRef = useRef<HTMLDivElement>(null);
   const done = !!progress[lessonId ?? ''];
 
@@ -261,6 +263,55 @@ export default function LessonPlayer() {
             className="mt-2.5"
           />
         </Link>
+
+        {/* R23: Meine Notiz */}
+        <div className="mt-3 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card">
+          <p className="flex items-center gap-2 text-[13px] font-bold text-deep-900">
+            <Pencil className="h-4 w-4 text-royal-600" aria-hidden /> Meine Notiz zu dieser Lektion
+          </p>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={2}
+            maxLength={300}
+            placeholder="Wichtige Einwirkzeiten, Fragen, Ideen…"
+            aria-label="Lektionsnotiz"
+            className="mt-2 w-full resize-none rounded-xl border border-mist-200 bg-mist-50 p-3 text-[12.5px] leading-relaxed text-deep-950 outline-none placeholder:text-slate-400 focus:border-royal-400"
+          />
+          <div className="mt-1.5 flex items-center justify-between">
+            <p className="text-[10px] text-slate-400">{note.length}/300 · lokal gespeichert</p>
+            <button
+              onClick={() => {
+                setLessonNote(lesson.id, note);
+                toast('Notiz gespeichert', 'check');
+              }}
+              className="tap rounded-full bg-royal-600 px-3.5 py-1.5 text-[11.5px] font-bold text-white shadow-card"
+            >
+              Speichern
+            </button>
+          </div>
+        </div>
+
+        {/* R24: Modul-Navigation */}
+        <div className="mt-3">
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-400">Module</p>
+          <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+            {course.modules.map((m, mi) => {
+              const doneCt = m.lessons.filter((l) => progress[l.id]).length;
+              const firstOpen = m.lessons.find((l) => !progress[l.id]) ?? m.lessons[0];
+              const complete = doneCt === m.lessons.length;
+              return (
+                <Link
+                  key={m.id}
+                  to={`/academy/course/${course.id}/lesson/${firstOpen.id}`}
+                  className={`tap shrink-0 rounded-full border px-3 py-1.5 text-[11.5px] font-bold ${complete ? 'border-royal-200 bg-royal-50 text-royal-700' : 'border-mist-200 bg-white text-slate-500'}`}
+                >
+                  M{mi + 1} {complete ? '✓' : `${doneCt}/${m.lessons.length}`}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Prev / Next */}
         <div className="mt-4 flex gap-2.5">

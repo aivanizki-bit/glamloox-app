@@ -12,7 +12,7 @@ const perks = [
 ];
 
 export default function Rewards() {
-  const { rewardPoints, orders, enrolled, favorites, userPosts } = useApp();
+  const { rewardPoints, orders, enrolled, favorites, userPosts, pointsLog } = useApp();
   const [displayPts, setDisplayPts] = useState(0);
 
   useEffect(() => {
@@ -113,6 +113,19 @@ export default function Rewards() {
             </div>
           );
         })}
+      </div>
+
+      {/* R40: Punkteverlauf */}
+      <h2 className="px-4 pb-2 pt-6 text-[16px] font-bold tracking-tight text-deep-900">Punkteverlauf</h2>
+      <div className="divide-y divide-mist-100 overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-card">
+        {pointsLog.slice(0, 6).map((l) => (
+          <div key={l.id} className="flex items-center justify-between px-4 py-3">
+            <p className="min-w-0 truncate pr-3 text-[12.5px] font-semibold text-deep-900">{l.title}</p>
+            <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-[11.5px] font-bold text-emerald-700">
+              +{l.delta} P.
+            </span>
+          </div>
+        ))}
       </div>
 
       {/* Erfolge */}

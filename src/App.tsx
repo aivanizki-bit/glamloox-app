@@ -3,6 +3,8 @@ import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AppProvider } from './store/AppStore';
 import { PhoneShell } from './components/PhoneShell';
 import { BottomNav } from './components/BottomNav';
+import { NotFound } from './components/GlobalOverlays';
+import { useApp } from './store/AppStore';
 
 import Home from './pages/Home';
 import Shop from './pages/Shop';
@@ -60,15 +62,31 @@ function ScrollContainer() {
         <Route path="/profile/events" element={<MyEvents />} />
         <Route path="/profile/rewards" element={<Rewards />} />
         <Route path="/profile/settings" element={<Settings />} />
-        <Route path="*" element={<Home />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </main>
   );
 }
 
+function OfflineListener() {
+  const { setOffline } = useApp();
+  useEffect(() => {
+    const off = () => setOffline(true);
+    const on = () => setOffline(false);
+    window.addEventListener('offline', off);
+    window.addEventListener('online', on);
+    return () => {
+      window.removeEventListener('offline', off);
+      window.removeEventListener('online', on);
+    };
+  }, [setOffline]);
+  return null;
+}
+
 export default function App() {
   return (
     <AppProvider>
+      <OfflineListener />
       <HashRouter>
         <PhoneShell>
           <ScrollContainer />

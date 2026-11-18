@@ -8,12 +8,15 @@ import {
   ChevronRight,
   Sun,
   FileText,
+  Languages,
+  Database,
 } from 'lucide-react';
 import { useApp } from '../store/AppStore';
 import { TopBar } from '../components/ui';
+import { MessageSquareHeart } from 'lucide-react';
 
 export default function Settings() {
-  const { settings, updateSettings, resetDemo } = useApp();
+  const { settings, updateSettings, resetDemo, allPosts, likedPosts, savedPosts, openFeedback } = useApp();
 
   const Toggle = ({
     on,
@@ -94,7 +97,32 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Demo */}
+        {/* R44: Sprache + Demo-Statistik */}
+        <div className="overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-card">
+          <div className="flex items-center gap-3.5 px-4 py-3.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-royal-50 text-royal-600">
+              <Languages className="h-[18px] w-[18px]" aria-hidden />
+            </span>
+            <span className="flex-1">
+              <span className="block text-[14px] font-semibold text-deep-900">Sprache</span>
+              <span className="block text-[11.5px] text-slate-400">Deutsch (weitere folgen)</span>
+            </span>
+            <span className="rounded-full bg-mist-100 px-2.5 py-1 text-[10.5px] font-bold text-slate-500">DE</span>
+          </div>
+          <div className="flex items-center gap-3.5 border-t border-mist-100 px-4 py-3.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-royal-50 text-royal-600">
+              <Database className="h-[18px] w-[18px]" aria-hidden />
+            </span>
+            <span className="flex-1">
+              <span className="block text-[14px] font-semibold text-deep-900">Lokale Demo-Daten</span>
+              <span className="block text-[11.5px] text-slate-400">
+                {allPosts.length} Beiträge · {likedPosts.length} Likes · {savedPosts.length} gespeichert
+              </span>
+            </span>
+          </div>
+        </div>
+
+        {/* Demo-Daten */}
         <div className="overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-card">
           <p className="border-b border-mist-200 bg-mist-50 px-4 py-2.5 text-[12px] font-bold uppercase tracking-wide text-slate-400">
             Demo-Daten
@@ -119,6 +147,21 @@ export default function Settings() {
           </button>
         </div>
 
+        {/* R45: Demo-Feedback */}
+        <button
+          onClick={openFeedback}
+          className="tap flex w-full items-center gap-3.5 rounded-2xl border border-mist-200 bg-white px-4 py-3.5 shadow-card"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-royal-50 text-royal-600">
+            <MessageSquareHeart className="h-[18px] w-[18px]" aria-hidden />
+          </span>
+          <span className="flex-1">
+            <span className="block text-[14px] font-semibold text-deep-900">Demo-Feedback geben</span>
+            <span className="block text-[11.5px] text-slate-400">Was gefällt dir? Was soll rein?</span>
+          </span>
+          <ChevronRight className="h-4 w-4 text-slate-300" aria-hidden />
+        </button>
+
         {/* Über den Prototyp */}
         <div className="overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-card">
           <p className="border-b border-mist-200 bg-mist-50 px-4 py-2.5 text-[12px] font-bold uppercase tracking-wide text-slate-400">
@@ -135,7 +178,7 @@ export default function Settings() {
               keine echten Bestellungen oder Zahlungen statt.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {['Version 1.1', 'React + Vite', 'Lokaler Demo-Speicher'].map((t) => (
+              {['Version 2.0', 'React + Vite', 'Lokaler Demo-Speicher'].map((t) => (
                 <span key={t} className="rounded-full bg-mist-100 px-2.5 py-1 text-[10.5px] font-bold text-slate-500">
                   {t}
                 </span>

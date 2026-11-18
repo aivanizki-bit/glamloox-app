@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Truck, Tag, X } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Truck, Tag, X, CalendarClock } from 'lucide-react';
 import { useApp, eur, productById } from '../store/AppStore';
 import { products } from '../data/products';
 import { TopBar, SmartImage, EmptyState, ProductCardMini } from '../components/ui';
@@ -136,6 +136,31 @@ export default function Cart() {
               );
             })}
           </div>
+
+          {/* R16: Das passt dazu */}
+          {(() => {
+            const cartCats = new Set(cart.map((it) => productById(it.productId)?.category));
+            const suggestions = products.filter((p) => !cartCats.has(p.category) && !cart.some((it) => it.productId === p.id)).slice(0, 4);
+            return suggestions.length > 0 ? (
+              <div className="mx-4 mt-3">
+                <p className="mb-2 text-[14px] font-bold text-deep-900">Das passt dazu</p>
+                <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
+                  {suggestions.map((p) => (
+                    <ProductCardMini key={p.id} product={p} />
+                  ))}
+                </div>
+              </div>
+            ) : null;
+          })()}
+
+          {/* R17: Lieferdatum-Schätzung */}
+          <p className="mx-4 mt-3 flex items-center gap-2 rounded-2xl border border-mist-200 bg-white px-3.5 py-2.5 text-[12px] font-semibold text-slate-600 shadow-card">
+            <CalendarClock className="h-4 w-4 shrink-0 text-royal-600" aria-hidden />
+            Voraussichtliche Lieferung:{' '}
+            <span className="font-bold text-deep-900">
+              {new Date(Date.now() + 3 * 86400000).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </span>
+          </p>
 
           {/* Rabattcode */}
           <div className="mx-4 mt-3 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card">

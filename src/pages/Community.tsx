@@ -8,6 +8,19 @@ import { useApp } from '../store/AppStore';
 import { TopBar, Chip, SmartImage, Avatar, EmptyState, BellButton } from '../components/ui';
 import { products } from '../data/products';
 
+// R32: Hashtags hervorheben
+export function renderHashtags(text: string) {
+  return text.split(/(#[A-Za-zÄÖÜäöü]+\w*)/g).map((part, i) =>
+    part.startsWith('#') ? (
+      <span key={i} className="font-semibold text-royal-600">
+        {part}
+      </span>
+    ) : (
+      part
+    ),
+  );
+}
+
 const typeMeta: Record<Post['type'], { label: string; classes: string }> = {
   ergebnis: { label: 'Ergebnis', classes: 'bg-royal-600' },
   frage: { label: 'Frage', classes: 'bg-amber-500' },
@@ -15,8 +28,9 @@ const typeMeta: Record<Post['type'], { label: string; classes: string }> = {
 };
 
 export function PostCard({ post }: { post: Post }) {
-  const author = post.authorId === 'm-lena' ? { ...memberById(post.authorId), name: demoUser.name } : memberById(post.authorId);
-  const { likedPosts, savedPosts, toggleLike, toggleSave, comments } = useApp();
+  const isMe = post.authorId === 'm-lena';
+  const author = isMe ? { ...memberById(post.authorId), name: demoUser.name } : memberById(post.authorId);
+  const { likedPosts, savedPosts, toggleLike, toggleSave, comments, follows, toggleFollow, toast } = useApp();
   const liked = likedPosts.includes(post.id);
   const saved = savedPosts.includes(post.id);
   const myComments = comments[post.id] ?? [];
@@ -42,6 +56,33 @@ export function PostCard({ post }: { post: Post }) {
           {meta.label}
         </span>
       </Link>
+      {!isMe && (
+        <div className="px-4 pb-1">
+          {follows.includes(post.authorId) ? (
+            <span className="text-[11px] font-semibold text-royal-600">✓ Du folgst {author.name.split(' ')[0]}</span>
+          ) : (
+            <button
+              onClick={() => {
+                toggleFollow(post.authorId);
+                toast('Du folgst jetzt ' + author.name.split(' ')[0], 'heart');
+              }}
+              className="tap rounded-full border border-royal-200 bg-royal-50 px-3 py-1 text-[11px] font-bold text-royal-700"
+            >
+              + Folgen
+            </button>
+          )}
+        </div>
+      )}
+      {isMe && (
+        <div className="flex gap-2 px-4 pb-1">
+          <Link
+            to={`/community/new?edit=${post.id}`}
+            className="tap rounded-full border border-mist-200 bg-white px-3 py-1 text-[11px] font-bold text-slate-500"
+          >
+            Bearbeiten
+          </Link>
+        </div>
+      )}
 
       {/* Text */}
       <Link to={`/community/post/${post.id}`} className="tap block px-4">
@@ -50,7 +91,7 @@ export function PostCard({ post }: { post: Post }) {
             {post.title}
           </h3>
         )}
-        <p className="mt-1 line-clamp-3 text-[13px] leading-relaxed text-slate-600">{post.text}</p>
+        <p className="mt-1 line-clamp-3 text-[13px] leading-relaxed text-slate-600">{renderHashtags(post.text)}</p>
       </Link>
 
       {/* Bilder */}

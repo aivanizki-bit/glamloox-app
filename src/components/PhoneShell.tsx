@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Toasts } from './ui';
 import { NotificationsSheet } from './Notifications';
+import { Splash, OfflineBanner, FeedbackSheet } from './GlobalOverlays';
 
 /**
  * Desktop-Präsentation: zentriertes „iPhone“ mit hochwertigem Hintergrund.
@@ -16,8 +17,11 @@ export function PhoneShell({ children }: { children: ReactNode }) {
   if (isStandalone) {
     return (
       <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-white text-deep-950">
+        <OfflineBanner />
         {children}
         <Toasts />
+        <FeedbackSheet />
+        <Splash />
         <NotificationsSheet />
       </div>
     );
@@ -88,6 +92,7 @@ export function PhoneShell({ children }: { children: ReactNode }) {
         />
         <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[52px] bg-black p-[3px] shadow-2xl">
           <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[49px] bg-white">
+            <OfflineBanner />
             {/* Dynamic Island */}
             <div
               className="pointer-events-none absolute left-1/2 top-[10px] z-50 h-[30px] w-[110px] -translate-x-1/2 rounded-full bg-black"
@@ -95,6 +100,8 @@ export function PhoneShell({ children }: { children: ReactNode }) {
             />
             <div className="flex h-full flex-col pt-[42px]">{children}</div>
             <Toasts />
+        <FeedbackSheet />
+        <Splash />
         <NotificationsSheet />
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { GraduationCap, Radio, PlayCircle, Clock, Users, ArrowRight, Award, CalendarDays } from 'lucide-react';
 import { courses } from '../data/courses';
@@ -9,7 +10,13 @@ import { TopBar, SmartImage, SectionHeader, ProgressBar, Chip } from '../compone
 export default function Academy() {
   const { enrolled, courseProgress } = useApp();
   const [level, setLevel] = useState<'alle' | 'Einsteiger' | 'Fortgeschritten' | 'Profi'>('alle');
-  const shownCourses = level === 'alle' ? courses : courses.filter((c) => c.level === level);
+  const [q, setQ] = useState('');
+  const shownCourses = courses
+    .filter((c) => level === 'alle' || c.level === level)
+    .filter((c) => {
+      const query = q.trim().toLowerCase();
+      return !query || c.title.toLowerCase().includes(query) || c.shortTitle.toLowerCase().includes(query) || c.subtitle.toLowerCase().includes(query);
+    });
   const continueCourse = courses.find((c) => c.id === 'korean-powder-2')!;
 
   return (
@@ -103,6 +110,18 @@ export default function Academy() {
       {/* Kurse */}
       <section id="kurse" className="scroll-mt-20 pt-6">
         <SectionHeader title="Videokurse" sub="Zertifizierte Online-Ausbildungen" />
+        <div className="mb-3 px-4">
+          <div className="flex h-10 items-center gap-2 rounded-xl border border-mist-200 bg-white px-3 shadow-card focus-within:border-royal-400">
+            <Search className="h-[16px] w-[16px] shrink-0 text-slate-400" aria-hidden />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Kurse suchen…"
+              aria-label="Kurse suchen"
+              className="w-full bg-transparent text-[13.5px] font-medium text-deep-950 outline-none placeholder:text-slate-400"
+            />
+          </div>
+        </div>
         <div className="no-scrollbar -mx-0 mb-3 flex gap-2 overflow-x-auto px-4">
           {(['alle', 'Einsteiger', 'Fortgeschritten', 'Profi'] as const).map((l) => (
             <Chip key={l} active={level === l} onClick={() => setLevel(l)}>

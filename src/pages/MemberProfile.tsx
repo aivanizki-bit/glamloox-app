@@ -28,6 +28,7 @@ export default function MemberProfile() {
             </h2>
             <p className="truncate text-[12.5px] text-royal-100/80">
               {isMe ? demoUser.role : member.role}
+              {member.academy && <span className="ml-1.5 rounded-full bg-gold-400/25 px-1.5 py-0.5 text-[9.5px] font-bold text-gold-400">✦ ACADEMY</span>}
             </p>
             <p className="mt-1 flex items-center gap-1 text-[11.5px] text-royal-100/60">
               <MapPin className="h-3 w-3" aria-hidden /> {isMe ? demoUser.city : member.city} ·

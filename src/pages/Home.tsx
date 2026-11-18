@@ -3,6 +3,15 @@ import { Link } from 'react-router-dom';
 import {
   Search,
   Sparkles,
+  Bell,
+  X,
+  Timer,
+  Truck,
+  RotateCcw,
+  Globe,
+  ArrowUp,
+  Mail,
+  TrendingUp,
   GraduationCap,
   Radio,
   ArrowRight,
@@ -43,7 +52,9 @@ const heroSlides = [
 ];
 
 export default function Home() {
-  const { courseProgress, enrolled } = useApp();
+  const { courseProgress, enrolled, pushHintDismissed, dismissPushHint, toast } = useApp();
+  const [mail, setMail] = useState('');
+  const [showTop, setShowTop] = useState(false);
   const slideRef = useRef<HTMLDivElement>(null);
   const [slideIdx, setSlideIdx] = useState(0);
 
@@ -61,6 +72,18 @@ export default function Home() {
   const heroPost = seedPosts[0];
   const heroPostAuthor = memberById(heroPost.authorId);
   const inProgress = courses.find((c) => c.id === 'korean-powder-2')!;
+
+  // R1: nächstes Event + Countdown
+  const upcoming = [...events].sort((a, b) => a.dateISO.localeCompare(b.dateISO))[0];
+  useEffect(() => {
+    const el = document.querySelector('main');
+    const onScroll = () => setShowTop((el?.scrollTop ?? 0) > 600);
+    el?.addEventListener('scroll', onScroll, { passive: true });
+    return () => el?.removeEventListener('scroll', onScroll);
+  }, []);
+  const daysLeft = Math.max(0, Math.ceil((new Date(upcoming.dateISO + 'T' + upcoming.time.slice(0, 5)).getTime() - Date.now()) / 86400000));
+  // R2: Trending-Posts (Top 3 nach Likes)
+  const trending = [...seedPosts].sort((a, b) => b.likes - a.likes).slice(0, 3);
 
   return (
     <div className="anim-fade-in pb-6">
@@ -189,6 +212,50 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* R8: Push-Demo-Hinweis */}
+      {!pushHintDismissed && (
+        <div className="anim-fade-up mx-4 mt-3 flex items-center gap-3 rounded-2xl border border-royal-100 bg-white p-3.5 shadow-card">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-royal-600 text-white">
+            <Bell className="h-[17px] w-[17px]" aria-hidden />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] font-bold text-deep-900">Verpasse keine Live-Events</p>
+            <p className="text-[11.5px] text-slate-400">Demo: Erinnerungen aktivieren</p>
+          </div>
+          <button
+            onClick={() => {
+              dismissPushHint();
+              toast('Demo-Erinnerungen aktiviert 💙', 'star');
+            }}
+            className="tap shrink-0 rounded-full bg-royal-600 px-3.5 py-2 text-[12px] font-bold text-white shadow-card"
+          >
+            Aktivieren
+          </button>
+          <button
+            onClick={dismissPushHint}
+            aria-label="Hinweis ausblenden"
+            className="tap flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-300 active:bg-mist-100"
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+      )}
+
+      {/* R1: Event-Countdown */}
+      <Link
+        to={`/academy/event/${upcoming.id}`}
+        className="tap mx-4 mt-3 flex items-center gap-3 rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 to-white p-3.5 shadow-card"
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-500 text-white">
+          <Timer className="h-[17px] w-[17px]" aria-hidden />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[12.5px] font-bold text-deep-900">Nur noch {daysLeft} Tage</p>
+          <p className="truncate text-[11.5px] text-slate-500">{upcoming.title}</p>
+        </div>
+        <span className="shrink-0 rounded-full bg-deep-900 px-3 py-1.5 text-[11px] font-bold text-white">Anmelden</span>
+      </Link>
 
       {/* ── Kategorien ─────────────────────────── */}
       <section className="pt-6">
@@ -341,16 +408,136 @@ export default function Home() {
         </div>
       </section>
 
+      {/* R5: Kurs der Woche */}
+      <section className="pt-7">
+        <SectionHeader title="Kurs der Woche" sub="Empfehlung der Academy" to="/academy" />
+        <div className="px-4">
+          <Link
+            to="/academy/course/reanimation"
+            className="tap flex gap-3.5 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card"
+          >
+            <SmartImage
+              src={courses[1].image}
+              alt={courses[1].title}
+              className="h-[72px] w-[108px] shrink-0 rounded-xl"
+            />
+            <div className="min-w-0 flex-1">
+              <span className="flex w-fit items-center gap-1 rounded-full bg-gold-400/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gold-500">
+                ⭐ Empfehlung
+              </span>
+              <p className="mt-1 line-clamp-1 text-[14px] font-bold text-deep-900">{courses[1].title}</p>
+              <p className="line-clamp-1 text-[11.5px] text-slate-400">{courses[1].hours} Std. · {courses[1].level}</p>
+              <p className="mt-0.5 text-[13.5px] font-extrabold text-deep-950">{eur(courses[1].price)}</p>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* R2: Trending in der Community */}
+      <section className="pt-7">
+        <SectionHeader title="Trending 🔥" sub="Die meist gelikten Beiträge" to="/community" />
+        <div className="px-4">
+          <div className="divide-y divide-mist-100 overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-card">
+            {trending.map((post, i) => {
+              const a = memberById(post.authorId);
+              return (
+                <Link key={post.id} to={`/community/post/${post.id}`} className="tap flex items-center gap-3 p-3.5">
+                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold ${i === 0 ? 'bg-gold-400 text-white' : 'bg-mist-200 text-slate-500'}`}>
+                    {i + 1}
+                  </span>
+                  <Avatar name={a.name} gradient={a.gradient} size={34} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[12.5px] font-bold text-deep-900">{post.title ?? post.text}</p>
+                    <p className="truncate text-[11px] text-slate-400">{a.name}</p>
+                  </div>
+                  <span className="flex shrink-0 items-center gap-1 text-[12px] font-bold text-royal-600">
+                    <TrendingUp className="h-3.5 w-3.5" aria-hidden /> {post.likes}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* R3: Trust-Section */}
+      <section className="pt-7">
+        <div className="grid grid-cols-3 gap-2 px-4">
+          {[
+            { icon: Truck, t: 'Gratis-Versand', s: 'ab 100 € in DE' },
+            { icon: RotateCcw, t: '14 Tage', s: 'Rückgaberecht' },
+            { icon: Globe, t: '11 Länder', s: 'DE · AT · CH & mehr' },
+          ].map(({ icon: Icon, t, s }) => (
+            <div key={t} className="flex flex-col items-center rounded-2xl border border-mist-200 bg-white px-2 py-4 text-center shadow-card">
+              <Icon className="h-5 w-5 text-royal-600" aria-hidden />
+              <p className="mt-1.5 text-[12px] font-bold leading-tight text-deep-900">{t}</p>
+              <p className="text-[10px] text-slate-400">{s}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* R6: Newsletter-Card */}
+      <section className="pt-7">
+        <div className="mx-4 overflow-hidden rounded-3xl bg-gradient-to-br from-deep-950 via-deep-900 to-royal-800 p-5 shadow-float">
+          <p className="flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.2em] text-royal-300">
+            <Mail className="h-4 w-4" aria-hidden /> Newsletter
+          </p>
+          <h3 className="mt-2 text-[18px] font-extrabold leading-snug tracking-tight text-white">
+            Beauty-Hacks & Trends<br />als Erste:r erfahren
+          </h3>
+          <div className="mt-3.5 flex gap-2">
+            <input
+              value={mail}
+              onChange={(e) => setMail(e.target.value)}
+              type="email"
+              placeholder="deine@email.de"
+              aria-label="Newsletter-E-Mail"
+              className="h-11 min-w-0 flex-1 rounded-xl border border-white/20 bg-white/10 px-3.5 text-[13px] font-medium text-white outline-none backdrop-blur placeholder:text-white/40 focus:border-royal-300"
+            />
+            <button
+              onClick={() => {
+                if (mail.includes('@')) {
+                  toast('Demo: Anmeldung erfasst 💙', 'star');
+                  setMail('');
+                } else {
+                  toast('Bitte gültige E-Mail eingeben', 'info');
+                }
+              }}
+              className="tap h-11 shrink-0 rounded-xl bg-royal-500 px-4 text-[13px] font-bold text-white shadow-card"
+            >
+              Los
+            </button>
+          </div>
+          <p className="mt-2.5 text-[10px] text-white/50">Demo-Formular · keine echte Anmeldung</p>
+        </div>
+      </section>
+
       {/* ── Brand-Streifen ─────────────────────── */}
+      {/* R7: Scroll-to-Top */}
+      {showTop && (
+        <button
+          onClick={() => document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Nach oben"
+          className="anim-pop fixed bottom-[86px] right-4 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-deep-900 text-white shadow-float"
+        >
+          <ArrowUp className="h-5 w-5" aria-hidden />
+        </button>
+      )}
+
       <section className="mt-8 bg-white px-4 py-5">
         <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
           Partner-Brands im Shop
         </p>
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+        <div className="no-scrollbar mt-3 flex gap-2.5 overflow-x-auto pb-1">
           {['BRONSUN', 'ÉLAN', 'InLei', 'MAXYMOVA', 'Noemi', 'OkO', 'ZOLA', 'A.DAN'].map((b) => (
-            <span key={b} className="text-[13px] font-bold tracking-wide text-slate-400">
+            <Link
+              key={b}
+              to={`/shop?brand=${encodeURIComponent(b)}`}
+              className="tap shrink-0 rounded-full border border-mist-200 bg-mist-50 px-3.5 py-2 text-[12.5px] font-bold tracking-wide text-slate-500 active:bg-royal-50 active:text-royal-700"
+            >
               {b}
-            </span>
+            </Link>
           ))}
         </div>
         <p className="mt-5 text-center text-[10.5px] leading-relaxed text-slate-300">

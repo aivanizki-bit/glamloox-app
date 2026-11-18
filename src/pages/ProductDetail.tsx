@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { products } from '../data/products';
+import { X, ZoomIn, Pencil } from 'lucide-react';
 import { useApp, eur } from '../store/AppStore';
 import { SmartImage, HeartButton, ProductCardMini, CartButton, TopBar } from '../components/ui';
 
@@ -21,9 +22,10 @@ export default function ProductDetail() {
   const { productId } = useParams();
   const navigate = useNavigate();
   const product = products.find((p) => p.id === productId);
-  const { addToCart, toast, pushRecentlyViewed } = useApp();
+  const { addToCart, toast, pushRecentlyViewed, recentlyViewed } = useApp();
   const [imgIdx, setImgIdx] = useState(0);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [lightbox, setLightbox] = useState<number | null>(null);
   const [variant, setVariant] = useState(product?.variants[0]?.id ?? 'std');
   const [qty, setQty] = useState(1);
 
@@ -65,9 +67,17 @@ export default function ProductDetail() {
           }}
         >
           {product.images.map((img, i) => (
-            <div key={i} className="w-full shrink-0 snap-center bg-mist-100">
+            <button
+              key={i}
+              onClick={() => setLightbox(i)}
+              aria-label={`${product.title} Bild ${i + 1} vergrößern`}
+              className="relative w-full shrink-0 snap-center bg-mist-100"
+            >
               <SmartImage src={img} alt={`${product.title} Bild ${i + 1}`} className="aspect-square w-full" />
-            </div>
+              <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-deep-950/60 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
+                <ZoomIn className="h-3 w-3" aria-hidden /> Zoom
+              </span>
+            </button>
           ))}
         </div>
         <div className="absolute inset-x-0 top-0 flex items-center justify-between p-3">
@@ -206,6 +216,12 @@ export default function ProductDetail() {
         </div>
       </div>
 
+      {/* R15: Studio-Deal-Hinweis */}
+      <p className="mx-4 mt-4 flex items-center gap-2 rounded-xl bg-royal-50 px-3.5 py-2.5 text-[11.5px] font-semibold text-royal-700">
+        <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden />
+        Studio-Deal: Ab 3 Stück −10 % auf die Gesamtsumme (Demo-Hinweis)
+      </p>
+
       {/* Service-Versprechen */}
       <div className="mt-6 grid grid-cols-3 gap-2 px-4">
         {[
@@ -245,6 +261,37 @@ export default function ProductDetail() {
         )}
       </div>
 
+      {/* R13: Zuletzt angesehen */}
+      {recentlyViewed.filter((id) => id !== product.id).length > 0 && (
+        <div className="mt-6">
+          <div className="mb-3 flex items-center justify-between px-4">
+            <h2 className="flex items-center gap-1.5 text-[15px] font-bold tracking-tight text-deep-900">
+              <Pencil className="h-4 w-4 text-royal-500" aria-hidden /> Zuletzt angesehen
+            </h2>
+          </div>
+          <div className="no-scrollbar flex gap-3 overflow-x-auto px-4">
+            {recentlyViewed.filter((id) => id !== product.id).slice(0, 6).map((id) => {
+              const p = products.find((x) => x.id === id);
+              return p ? <ProductCardMini key={id} product={p} /> : null;
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* R14: Passendes Zubehör */}
+      {product.category !== 'zubehoer' && (
+        <div className="mt-6">
+          <div className="mb-3 flex items-center justify-between px-4">
+            <h2 className="text-[15px] font-bold tracking-tight text-deep-900">Zubehör-Tipps dazu</h2>
+          </div>
+          <div className="no-scrollbar flex gap-3 overflow-x-auto px-4">
+            {products.filter((p) => p.category === 'zubehoer').slice(0, 6).map((p) => (
+              <ProductCardMini key={p.id} product={p} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Ähnliche Produkte */}
       {related.length > 0 && (
         <div className="mt-7">
@@ -259,6 +306,26 @@ export default function ProductDetail() {
               <ProductCardMini key={p.id} product={p} />
             ))}
           </div>
+        </div>
+      )}
+
+      {/* R12: Lightbox */}
+      {lightbox !== null && (
+        <div className="anim-fade-in absolute inset-0 z-50 flex items-center justify-center bg-deep-950/95 p-4" onClick={() => setLightbox(null)}>
+          <button
+            aria-label="Zoom schließen"
+            className="tap absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur"
+          >
+            <X className="h-5 w-5" aria-hidden />
+          </button>
+          <img
+            src={product.images[lightbox]}
+            alt={`${product.title} vergrößert`}
+            className="max-h-[75%] w-auto max-w-full rounded-2xl object-contain shadow-float"
+          />
+          <p className="absolute bottom-6 text-[12px] font-medium text-white/60">
+            {lightbox + 1} / {product.images.length} · Tippen zum Schließen
+          </p>
         </div>
       )}
 

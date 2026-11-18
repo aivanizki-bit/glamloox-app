@@ -1,11 +1,11 @@
 import { Link, useParams } from 'react-router-dom';
-import { Truck, CheckCircle2, Package } from 'lucide-react';
+import { Truck, CheckCircle2, Package, ReceiptText } from 'lucide-react';
 import { useApp, eur, productById } from '../store/AppStore';
 import { TopBar, SmartImage, EmptyState } from '../components/ui';
 
 export default function OrderDetail() {
   const { orderId } = useParams();
-  const { orders } = useApp();
+  const { orders, toast } = useApp();
   const order = orders.find((o) => o.id === orderId);
 
   if (!order) {
@@ -119,6 +119,39 @@ export default function OrderDetail() {
             </div>
           </div>
         </div>
+
+        {/* R38: Tracking-Events */}
+        <div className="mt-3 rounded-2xl border border-mist-200 bg-white p-4 shadow-card">
+          <p className="text-[13px] font-bold text-deep-900">Sendungsverlauf</p>
+          <div className="mt-2.5 space-y-2.5">
+            {[
+              ['Bestellt', new Date(order.dateISO + 'T12:00')],
+              ['Zahlung bestätigt', new Date(new Date(order.dateISO + 'T12:00').getTime() + 3600000)],
+              ['Versandt', new Date(new Date(order.dateISO + 'T12:00').getTime() + 86400000)],
+              order.status === 'geliefert'
+                ? ['Geliefert', new Date(new Date(order.dateISO + 'T12:00').getTime() + 2 * 86400000)]
+                : ['Zustellung erwartet', new Date(Date.now() + 2 * 86400000)],
+            ].map(([label, date], i) => (
+              <div key={i} className="flex items-center gap-3">
+                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${i <= currentStep ? 'bg-royal-600 text-white' : 'bg-mist-200 text-slate-400'}`}>
+                  {i < currentStep ? '✓' : i + 1}
+                </span>
+                <p className="flex-1 text-[12.5px] font-semibold text-deep-900">{label as string}</p>
+                <p className="text-[11px] text-slate-400">
+                  {(date as Date).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} Uhr
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* R39: Rechnung-Demo */}
+        <button
+          onClick={() => toast('Demo: Rechnung würde als PDF geladen', 'info')}
+          className="tap mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-mist-200 bg-white py-3.5 text-[13px] font-bold text-deep-900 shadow-card"
+        >
+          <ReceiptText className="h-4 w-4 text-royal-600" aria-hidden /> Rechnung als PDF (Demo)
+        </button>
 
         <p className="mt-4 rounded-2xl bg-white p-3.5 text-[10.5px] leading-relaxed text-slate-400 shadow-card">
           Demo-Bestellung des GLAMLOOX Prototyps – keine echte Transaktion.

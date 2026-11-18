@@ -17,6 +17,8 @@ export interface Module {
 }
 export interface Course {
   id: string;
+  instructor: string;
+  audience: string[];
   title: string;
   shortTitle: string;
   subtitle: string;
@@ -36,6 +38,8 @@ export interface Course {
 export const courses: Course[] = [
   {
     id: 'korean-powder-2',
+    instructor: 'Anastasia · GLAMLOOX Academy Head-Trainerin',
+    audience: ["Lash Artists mit Lifting-Grundkenntnissen","Studios, die Premium-Lifting positionieren wollen","Trainerinnen, die Korean-Technik weitergeben"],
     title: 'Korean Lash Lift – Powder Technologie 2.0',
     shortTitle: 'Korean Lash Lift Powder 2.0',
     subtitle: 'Premium-Online-Kurs mit Webinar Live-Coaching',
@@ -99,6 +103,8 @@ export const courses: Course[] = [
   },
   {
     id: 'reanimation',
+    instructor: 'GLAMLOOX Academy Team · Pflege-Experten',
+    audience: ["Lash Artists nach Extensions- oder Lifting-Stress","Studios mit Aftercare-Fokus","Alle, die Booster-Protokolle professionell nutzen"],
     title: 'REANIMATION DER WIMPERN™',
     shortTitle: 'Reanimation der Wimpern™',
     subtitle: 'Der Online-Kurs für gesunde Wimpern nach Stress',
@@ -148,6 +154,8 @@ export const courses: Course[] = [
   },
   {
     id: 'korean-demo-masterclass',
+    instructor: 'GLAMLOOX Senior Trainerin',
+    audience: ["Lash Artists mit Lifting-Basis","Visuelle Lerner, die Live-Demos brauchen","Kleingruppen-Fans (max. 12 Plätze)"],
     title: 'Korean Lashlifting Demo Masterclass',
     shortTitle: 'Demo Masterclass',
     subtitle: 'Live-Demo-Tag mit Modellbehandlung',
@@ -188,6 +196,8 @@ export const courses: Course[] = [
   },
   {
     id: 'big-korean-webinar',
+    instructor: 'GLAMLOOX Academy Team',
+    audience: ["Einsteigerinnen ohne Vorkenntnisse","Teams, die vorab Schnuppern wollen","Alle mit Fragen zum Korean Lash Lift"],
     title: 'BIG KOREAN Lashlift Webinar',
     shortTitle: 'Big Korean Webinar',
     subtitle: 'Live online – mit Aufzeichnung',
