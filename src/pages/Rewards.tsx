@@ -1,0 +1,102 @@
+import { Gift, Sparkles, Percent, Truck, BadgeCheck } from 'lucide-react';
+import { demoUser } from '../data/user';
+import { useApp } from '../store/AppStore';
+import { TopBar } from '../components/ui';
+
+const perks = [
+  { icon: Percent, title: '5% Dauerbonus', desc: 'Auf alle Eigenprodukte von GLAMLOOX®', need: 'Ab 300 P.' },
+  { icon: Truck, title: 'Gratis-Versand', desc: 'Frei Versand ab 50 € Bestellwert', need: 'Ab 400 P.' },
+  { icon: Sparkles, title: 'Early Access', desc: 'Neuheiten & Sale zuerst shoppen', need: 'Ab 500 P.' },
+  { icon: BadgeCheck, title: 'Profi-Badge', desc: 'Verifiziertes Profil in der Community', need: 'Ab 600 P.' },
+];
+
+export default function Rewards() {
+  const { rewardPoints } = useApp();
+  const pct = Math.min(100, (rewardPoints / demoUser.nextTierAt) * 100);
+
+  return (
+    <div className="anim-slide-in min-h-full bg-mist-50 pb-6">
+      <TopBar title="Rewards & Vorteile" back="/profile" />
+
+      {/* Punkte-Karte */}
+      <div className="mx-4 mt-4 overflow-hidden rounded-3xl bg-gradient-to-br from-deep-950 via-deep-900 to-royal-800 p-5 shadow-float">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-gold-400 to-gold-500 text-white shadow-card">
+            <Gift className="h-6 w-6" aria-hidden />
+          </div>
+          <div>
+            <p className="text-[10.5px] font-bold uppercase tracking-[0.2em] text-gold-400">
+              GLAMLOOX Rewards · {demoUser.rewardTier}
+            </p>
+            <p className="text-[24px] font-extrabold leading-tight text-white">
+              {rewardPoints} <span className="text-[14px] font-semibold text-white/60">Punkte</span>
+            </p>
+          </div>
+        </div>
+        <div className="mt-4">
+          <div className="h-2 overflow-hidden rounded-full bg-white/15">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-gold-400 to-gold-500 transition-all duration-700"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <div className="mt-1.5 flex justify-between text-[10.5px] font-semibold text-white/50">
+            <span>{demoUser.rewardTier}</span>
+            <span>
+              {Math.max(0, demoUser.nextTierAt - rewardPoints)} Punkte bis Platin
+            </span>
+          </div>
+        </div>
+        <p className="mt-3.5 rounded-xl bg-white/10 px-3.5 py-2.5 text-[11.5px] leading-relaxed text-white/75">
+          💙 Du sammelst automatisch: 1 Punkt pro 1 € Bestellung, +50 Punkte pro
+          Bestellung und +25 Punkte pro veröffentlichtem Community-Beitrag (Demo).
+        </p>
+      </div>
+
+      {/* Vorteile */}
+      <h2 className="px-4 pb-2 pt-6 text-[16px] font-bold tracking-tight text-deep-900">
+        Deine Vorteile
+      </h2>
+      <div className="space-y-2.5 px-4">
+        {perks.map(({ icon: Icon, title, desc, need }) => {
+          const threshold = parseInt(need.replace(/\D/g, ''));
+          const unlocked = rewardPoints >= threshold;
+          return (
+            <div
+              key={title}
+              className={`flex items-center gap-3.5 rounded-2xl border p-3.5 shadow-card ${
+                unlocked ? 'border-royal-100 bg-white' : 'border-mist-200 bg-white/60'
+              }`}
+            >
+              <span
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                  unlocked ? 'bg-royal-600 text-white' : 'bg-mist-100 text-slate-400'
+                }`}
+              >
+                <Icon className="h-5 w-5" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className={`text-[13.5px] font-bold ${unlocked ? 'text-deep-900' : 'text-slate-400'}`}>
+                  {title}
+                </p>
+                <p className="text-[11.5px] text-slate-400">{desc}</p>
+              </div>
+              <span
+                className={`shrink-0 rounded-full px-2.5 py-1 text-[10.5px] font-bold ${
+                  unlocked ? 'bg-emerald-50 text-emerald-700' : 'bg-mist-100 text-slate-400'
+                }`}
+              >
+                {unlocked ? 'Aktiv ✓' : need}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="mt-5 px-8 text-center text-[10.5px] leading-relaxed text-slate-400">
+        Demo-Rewards-System zur Veranschaulichung – Punkte & Vorteile sind
+        Beispieldaten und werden lokal im Browser gespeichert.
+      </p>
+    </div>
+  );
+}
