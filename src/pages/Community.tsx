@@ -190,7 +190,7 @@ export default function Community() {
   const navigate = useNavigate();
 
   const feed = useMemo(() => {
-    let list = allPosts;
+    let list = allPosts.filter((p) => !(p as Post & { hidden?: boolean }).hidden);
     if (filter === 'gespeichert') list = list.filter((p) => savedPosts.includes(p.id));
     else if (filter !== 'alle') list = list.filter((p) => p.type === filter);
     if (query.trim()) {

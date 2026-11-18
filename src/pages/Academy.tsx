@@ -3,7 +3,7 @@ import { Heart } from 'lucide-react';
 import { Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { GraduationCap, Radio, PlayCircle, Clock, Users, ArrowRight, Award, CalendarDays } from 'lucide-react';
-import { courses } from '../data/courses';
+import { courses, type Course } from '../data/courses';
 import { events, formatDate, formatDateShort, isPastEvent } from '../data/events';
 import { useApp, eur } from '../store/AppStore';
 import { TopBar, SmartImage, SectionHeader, ProgressBar, Chip } from '../components/ui';
@@ -13,6 +13,7 @@ export default function Academy() {
   const [level, setLevel] = useState<'alle' | 'Einsteiger' | 'Fortgeschritten' | 'Profi'>('alle');
   const [q, setQ] = useState('');
   const shownCourses = courses
+    .filter((c) => (c as Course & { published?: boolean }).published !== false)
     .filter((c) => level === 'alle' || c.level === level)
     .filter((c) => {
       const query = q.trim().toLowerCase();

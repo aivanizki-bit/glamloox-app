@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { products, type Product } from '../data/products';
 import { courses, totalLessons, allLessonIds } from '../data/courses';
+import { events as staticEvents } from '../data/events';
 import { posts as seedPosts, type Post, type Comment } from '../data/community';
 import {
   demoUser,
@@ -75,6 +76,7 @@ interface PersistedState {
   comments: Record<string, Comment[]>;
   userPosts: Post[];
   rewardPoints: number;
+  adminApplied: string;
   notifications: NotifItem[];
   follows: string[];
   reminders: string[];
@@ -107,6 +109,7 @@ const DEFAULT_STATE: PersistedState = {
   comments: {},
   userPosts: [],
   rewardPoints: demoUser.rewardPoints,
+  adminApplied: '',
   notifications: SEED_NOTIFS,
   follows: [],
   reminders: [],
@@ -189,6 +192,7 @@ export interface AppState extends PersistedState {
   pushRecentlyViewed: (productId: string) => void;
   applyDiscount: (code: string) => boolean;
   clearDiscount: () => void;
+  applyAdminData: (json: string, silent?: boolean) => boolean;
   // Misc
   toasts: Toast[];
   dismissToast: (id: number) => void;
@@ -668,6 +672,82 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const clearDiscount = useCallback(() => setState((s) => ({ ...s, discount: null })), []);
 
+  // Admin-Brücke: JSON aus der Admin-Konsole auf den Datenlayer anwenden
+  const applyAdminDataInternal = useCallback((json: string, silent: boolean) => {
+      try {
+        const d = JSON.parse(json) as {
+          products?: { id: string; price: number; badge: string | null; active: boolean }[];
+          events?: { id: string; dateISO: string; price: number; published: boolean }[];
+          courses?: { id: string; price: number; published: boolean }[];
+          posts?: { id: string; hidden: boolean }[];
+          outbox?: { id: string; title: string; body: string; target: string; sentISO: string }[];
+          rewardPoints?: number;
+        };
+        if (!d.products || !d.events) return false;
+        let changed = 0;
+        for (const ap of d.products) {
+          const p = products.find((x) => x.id === ap.id);
+          if (p) {
+            if (typeof ap.price === 'number') { p.price = ap.price; changed++; }
+            if (ap.badge !== undefined) p.badge = ap.badge;
+          }
+        }
+        for (const ae of d.events ?? []) {
+          const e = staticEvents.find((x) => x.id === ae.id);
+          if (e) {
+            if (typeof ae.dateISO === 'string') e.dateISO = ae.dateISO;
+            if (typeof ae.price === 'number') e.price = ae.price;
+            changed++;
+          } else if (ae.published !== false) {
+            staticEvents.push(ae as unknown as (typeof staticEvents)[number]);
+            changed++;
+          }
+        }
+        for (const ac of d.courses ?? []) {
+          const c = courses.find((x) => x.id === ac.id);
+          if (c && typeof ac.price === 'number') { c.price = ac.price; changed++; }
+        }
+        for (const ph of d.posts ?? []) {
+          const p = seedPosts.find((x) => x.id === ph.id);
+          if (p) { (p as Post & { hidden?: boolean }).hidden = ph.hidden; changed++; }
+        }
+        setState((s) => {
+          const newNotifs = (d.outbox ?? []).map((n) => ({
+            id: 'admin-' + n.id,
+            kind: 'system' as const,
+            title: n.title,
+            body: n.body,
+            ago: 'gerade eben (Admin)',
+            read: false,
+          }));
+          const existing = new Set(s.notifications.map((n) => n.id));
+          return {
+            ...s,
+            rewardPoints: typeof d.rewardPoints === 'number' ? d.rewardPoints : s.rewardPoints,
+            notifications: [...newNotifs.filter((n) => !existing.has(n.id)), ...s.notifications].slice(0, 20),
+          };
+        });
+        if (changed > 0 && !silent) {
+          toast('Admin-Daten übernommen (' + changed + ' Änderungen) ✓', 'star');
+        }
+        setState((s) => ({ ...s, adminApplied: json }));
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [toast],
+  );
+  const applyAdminData = useCallback((json: string, silent?: boolean) => applyAdminDataInternal(json, !!silent), [applyAdminDataInternal]);
+
+  // Bei jedem Start: gespeicherte Admin-Daten anwenden ( silent )
+  useEffect(() => {
+    if (state.adminApplied) {
+      applyAdminDataInternal(state.adminApplied, true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Zertifikate dynamisch aus earnedCerts generieren
   const certificates = useMemo(
     () =>
@@ -740,6 +820,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     pushRecentlyViewed,
     applyDiscount,
     clearDiscount,
+    applyAdminData,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

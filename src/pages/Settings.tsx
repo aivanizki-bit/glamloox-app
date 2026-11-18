@@ -11,12 +11,13 @@ import {
   Languages,
   Database,
 } from 'lucide-react';
+import { useState, useRef } from 'react';
 import { useApp } from '../store/AppStore';
 import { TopBar } from '../components/ui';
-import { MessageSquareHeart, Sparkles, SendHorizontal } from 'lucide-react';
+import { MessageSquareHeart, Sparkles, SendHorizontal, CheckCircle2, XCircle } from 'lucide-react';
 
 export default function Settings() {
-  const { settings, updateSettings, resetDemo, allPosts, likedPosts, savedPosts, openFeedback, openTour, toast, profile, updateProfile } = useApp();
+  const { settings, updateSettings, resetDemo, allPosts, likedPosts, savedPosts, openFeedback, openTour, toast, profile, updateProfile, applyAdminData } = useApp();
 
   const Toggle = ({
     on,
@@ -225,6 +226,9 @@ export default function Settings() {
           </button>
         </div>
 
+        {/* Admin-Brücke */}
+        <AdminImportCard applyAdminData={applyAdminData} />
+
         {/* R45: Demo-Feedback */}
         <button
           onClick={openFeedback}
@@ -285,6 +289,51 @@ export default function Settings() {
         <p className="pb-2 text-center text-[10.5px] text-slate-400">
           Konzept-Prototyp · keine Verbindung zum GLAMLOOX-Shop-System
         </p>
+      </div>
+    </div>
+  );
+}
+
+
+function AdminImportCard({ applyAdminData }: { applyAdminData: (json: string) => boolean }) {
+  const [val, setVal] = useState('');
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const [state, setState] = useState<'idle' | 'ok' | 'error'>('idle');
+  return (
+    <div className="overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-card">
+      <p className="border-b border-mist-200 bg-mist-50 px-4 py-2.5 text-[12px] font-bold uppercase tracking-wide text-slate-400">
+        Admin-Daten übernehmen (JSON-Brücke)
+      </p>
+      <div className="p-4">
+        <p className="text-[12.5px] leading-relaxed text-slate-500">
+          Aus der <span className="font-semibold text-deep-900">Admin-Konsole</span> (Einstellungen → JSON kopieren)
+          übernimmmt diese Brücke Preise, Badges, Event-Termine & Mitteilungen in die App-Demo.
+        </p>
+        <textarea
+          ref={ref}
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          rows={3}
+          placeholder='Admin-JSON hier einfügen…'
+          aria-label="Admin-JSON einfügen"
+          className="mt-3 w-full resize-none rounded-xl border border-mist-200 bg-mist-50 p-3 font-mono text-[11px] leading-relaxed text-deep-950 outline-none placeholder:text-slate-400 focus:border-royal-400"
+        />
+        <div className="mt-2.5 flex items-center gap-3">
+          <button
+            onClick={() => {
+              const ok = applyAdminData(val);
+              setState(ok ? 'ok' : 'error');
+              setTimeout(() => setState('idle'), 3000);
+              if (ok) setVal('');
+            }}
+            disabled={!val.trim()}
+            className="tap rounded-full bg-deep-900 px-5 py-2 text-[12.5px] font-bold text-white shadow-card disabled:opacity-40"
+          >
+            Übernehmen
+          </button>
+          {state === 'ok' && <span className="flex items-center gap-1 text-[12px] font-bold text-emerald-600"><CheckCircle2 className="h-4 w-4" aria-hidden /> Übernommen</span>}
+          {state === 'error' && <span className="flex items-center gap-1 text-[12px] font-bold text-red-600"><XCircle className="h-4 w-4" aria-hidden /> Ungültiges JSON</span>}
+        </div>
       </div>
     </div>
   );
