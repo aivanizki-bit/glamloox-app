@@ -19,6 +19,7 @@ export interface Course {
   id: string;
   instructor: string;
   audience: string[];
+  voraussetzungen: string[];
   title: string;
   shortTitle: string;
   subtitle: string;
@@ -38,6 +39,7 @@ export interface Course {
 export const courses: Course[] = [
   {
     id: 'korean-powder-2',
+    voraussetzungen: ["Lash-Lifting-Grundkenntnisse","Eigene Arbeitsmaterialien (Liste im Kurs)"],
     instructor: 'Anastasia · GLAMLOOX Academy Head-Trainerin',
     audience: ["Lash Artists mit Lifting-Grundkenntnissen","Studios, die Premium-Lifting positionieren wollen","Trainerinnen, die Korean-Technik weitergeben"],
     title: 'Korean Lash Lift – Powder Technologie 2.0',
@@ -103,6 +105,7 @@ export const courses: Course[] = [
   },
   {
     id: 'reanimation',
+    voraussetzungen: ["Keine Vorkenntnisse nötig","Grundverständnis der Lash-Pflege hilfreich"],
     instructor: 'GLAMLOOX Academy Team · Pflege-Experten',
     audience: ["Lash Artists nach Extensions- oder Lifting-Stress","Studios mit Aftercare-Fokus","Alle, die Booster-Protokolle professionell nutzen"],
     title: 'REANIMATION DER WIMPERN™',
@@ -154,6 +157,7 @@ export const courses: Course[] = [
   },
   {
     id: 'korean-demo-masterclass',
+    voraussetzungen: ["Sicheres Basics-Lifting","Eigene Pinsel & Pads für die Praxis"],
     instructor: 'GLAMLOOX Senior Trainerin',
     audience: ["Lash Artists mit Lifting-Basis","Visuelle Lerner, die Live-Demos brauchen","Kleingruppen-Fans (max. 12 Plätze)"],
     title: 'Korean Lashlifting Demo Masterclass',
@@ -196,6 +200,7 @@ export const courses: Course[] = [
   },
   {
     id: 'big-korean-webinar',
+    voraussetzungen: ["Keine Voraussetzungen"],
     instructor: 'GLAMLOOX Academy Team',
     audience: ["Einsteigerinnen ohne Vorkenntnisse","Teams, die vorab Schnuppern wollen","Alle mit Fragen zum Korean Lash Lift"],
     title: 'BIG KOREAN Lashlift Webinar',
@@ -225,6 +230,42 @@ export const courses: Course[] = [
           { id: 'bw-m1-l1', title: 'Was ist der Korean Lash Lift?', duration: '24:10', type: 'video', desc: 'Methode, Vorteile, Abgrenzung zum klassischen Lift.' },
           { id: 'bw-m1-l2', title: 'Produkt- & Pad-Übersicht', duration: '31:42', type: 'video', desc: 'Welche Systemsysteme und Pads sich eignen.' },
           { id: 'bw-m1-l3', title: 'Live Q&A Session', duration: '28:08', type: 'video', desc: 'Antworten auf die häufigsten Fragen.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'brow-demo',
+    instructor: 'Jules Berger · Gast-Dozentin',
+    voraussetzungen: ['Keine Voraussetzungen'],
+    audience: ['Alle, die Brow Lifting ausprobieren wollen', 'Neue Academy-Mitglieder zum Reinschnuppern'],
+    title: 'Brow Lifting – Mini-Demokurs (kostenlos)',
+    shortTitle: 'Brow Demo-Kurs',
+    subtitle: 'Kostenloser Einblick in die Brow-Ausbildung',
+    price: 0,
+    level: 'Einsteiger',
+    format: 'Online-Kurs · Demo',
+    image: CDN + 'ZOLA_Silver_Lifting_Gel.jpg?width=1200',
+    lessonPoster: CDN + 'ZOLA_Silver_Lotionen_Set_Lifting.jpg?width=1200',
+    hours: 1,
+    students: 415,
+    real: false,
+    description:
+      'Kostenloser Demo-Kurs, um die GLAMLOOX Academy kennenzulernen: Ein komplettes Brow-Lifting in Kurzform mit den wichtigsten Techniken und Tipps. Volle Funktionalität wie in allen Kursen – Fortschritt, Quiz und Zertifikat.',
+    highlights: [
+      'Kostenlos & unverbindlich',
+      'Kompletter Technik-Ablauf in Kurzform',
+      'Funktioniert wie jeder Academy-Kurs',
+      'Demo-Zertifikat bei Abschluss',
+    ],
+    modules: [
+      {
+        id: 'bd-m1',
+        title: 'Kurz & knackig',
+        lessons: [
+          { id: 'bd-m1-l1', title: 'Willkommen im Demo-Kurs', duration: '03:10', type: 'video', desc: 'So funktioniert die Academy und was dich erwartet.' },
+          { id: 'bd-m1-l2', title: 'Brow-Lifting in 5 Schritten', duration: '12:45', type: 'video', desc: 'Der komplette Ablauf komprimiert.' },
+          { id: 'bd-m1-l3', title: 'Mini-Quiz', duration: '4 Fragen', type: 'quiz', desc: 'Schneller Wissenscheck zum Abschluss.' },
         ],
       },
     ],

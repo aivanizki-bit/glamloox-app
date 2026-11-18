@@ -1,13 +1,16 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { MapPin, CalendarDays, UserPlus, UserCheck } from 'lucide-react';
 import { memberById, posts as seedPosts } from '../data/community';
 import { demoUser } from '../data/user';
 import { useApp } from '../store/AppStore';
-import { TopBar, Avatar } from '../components/ui';
+import { TopBar, Avatar, SmartImage } from '../components/ui';
+import { LayoutGrid, List as ListIcon } from 'lucide-react';
 import { PostCard } from './Community';
 
 export default function MemberProfile() {
   const { memberId } = useParams();
+  const [gridView, setGridView] = useState(false);
   const member = memberById(memberId ?? '');
   const isMe = member.id === 'm-lena';
   const { allPosts, follows, toggleFollow, toast } = useApp();
@@ -93,14 +96,31 @@ export default function MemberProfile() {
         </div>
       </div>
 
-      {/* Beiträge */}
-      <h3 className="px-4 pb-2 pt-6 text-[16px] font-bold tracking-tight text-deep-900">
-        Beiträge · {memberPosts.length}
-      </h3>
+      {/* R34: Beiträge mit Ansicht-Toggle */}
+      <div className="flex items-center justify-between px-4 pb-2 pt-6">
+        <h3 className="text-[16px] font-bold tracking-tight text-deep-900">
+          Beiträge · {memberPosts.length}
+        </h3>
+        <button
+          onClick={() => setGridView((v) => !v)}
+          aria-label={gridView ? 'Listen-Ansicht' : 'Grid-Ansicht'}
+          className="tap flex h-8 w-8 items-center justify-center rounded-lg border border-mist-200 bg-white text-deep-900 shadow-card"
+        >
+          {gridView ? <ListIcon className="h-4 w-4" aria-hidden /> : <LayoutGrid className="h-4 w-4" aria-hidden />}
+        </button>
+      </div>
       {memberPosts.length === 0 ? (
         <p className="px-8 text-center text-[13px] text-slate-400">
           Noch keine Beiträge – aber das ändert sich sicher bald. 💙
         </p>
+      ) : gridView ? (
+        <div className="grid grid-cols-3 gap-1.5 px-4">
+          {memberPosts.filter((p) => p.images.length > 0).map((p) => (
+            <Link key={p.id} to={`/community/post/${p.id}`} className="tap overflow-hidden rounded-xl">
+              <SmartImage src={p.images[0]} alt={p.title ?? ''} className="aspect-square w-full" />
+            </Link>
+          ))}
+        </div>
       ) : (
         <div className="space-y-3.5 px-4">
           {memberPosts.map((p) => (

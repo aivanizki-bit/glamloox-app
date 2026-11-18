@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Heart, Plus, ShoppingBag, Check, Info, Star, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, Plus, ShoppingBag, Check, Info, Star, Sparkles, RotateCcw } from 'lucide-react';
 import { useApp, eur } from '../store/AppStore';
 import type { Product } from '../data/products';
 
@@ -277,8 +277,8 @@ export function EmptyState({
 
 // ── Toasts ────────────────────────────────────────────
 export function Toasts() {
-  const { toasts } = useApp();
-  const icons = { check: Check, heart: Heart, cart: ShoppingBag, info: Info, star: Star };
+  const { toasts, dismissToast } = useApp();
+  const icons: Record<string, typeof Check> = { check: Check, heart: Heart, cart: ShoppingBag, info: Info, star: Star, undo: RotateCcw };
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-[92px] z-50 flex flex-col items-center gap-2 px-4">
       {toasts.map((t) => {
@@ -290,6 +290,17 @@ export function Toasts() {
           >
             <I className="h-4 w-4 shrink-0 text-royal-300" aria-hidden />
             <span className="truncate text-[13.5px] font-medium">{t.msg}</span>
+            {t.action && (
+              <button
+                onClick={() => {
+                  t.action!.run();
+                  dismissToast(t.id);
+                }}
+                className="tap shrink-0 rounded-full bg-royal-500 px-3 py-1 text-[11.5px] font-bold text-white"
+              >
+                {t.action.label}
+              </button>
+            )}
           </div>
         );
       })}
@@ -344,3 +355,5 @@ export function ProgressBar({ pct, className = '' }: { pct: number; className?: 
 
 // Re-Export für einheitliche Imports
 export { BellButton } from './Notifications';
+
+export { eur } from '../store/AppStore';

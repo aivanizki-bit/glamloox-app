@@ -116,9 +116,15 @@ export default function Cart() {
                         >
                           <Minus className="h-3.5 w-3.5" aria-hidden />
                         </button>
-                        <span className="w-5 text-center text-[13.5px] font-bold text-deep-950">
-                          {item.qty}
-                        </span>
+                        <input
+                          value={item.qty}
+                          onChange={(e) => {
+                            const n = parseInt(e.target.value.replace(/\D/g, ''), 10);
+                            if (!Number.isNaN(n)) setQty(item.productId, item.variantId, Math.min(99, Math.max(1, n)));
+                          }}
+                          aria-label="Menge direkt ändern"
+                          className="w-8 rounded-lg border border-mist-200 bg-white text-center text-[13.5px] font-bold text-deep-950 outline-none focus:border-royal-400"
+                        />
                         <button
                           onClick={() => setQty(item.productId, item.variantId, item.qty + 1)}
                           aria-label="Menge erhöhen"
@@ -186,7 +192,7 @@ export default function Cart() {
                 <div className="flex gap-2">
                   <input
                     value={codeInput}
-                    onChange={(e) => setCodeInput(e.target.value)}
+                    onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
                     placeholder="Rabattcode eingeben…"
                     aria-label="Rabattcode"
                     className="h-10 flex-1 rounded-xl border border-mist-200 bg-mist-50 px-3.5 text-[13px] font-semibold uppercase text-deep-950 outline-none placeholder:font-normal placeholder:normal-case placeholder:text-slate-400 focus:border-royal-400"
@@ -227,6 +233,13 @@ export default function Cart() {
                 {eur(cartTotal - discountAmount + (missing > 0 ? 4.9 : 0))}
               </span>
             </div>
+            {(discount || missing === 0) && (
+              <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-[11.5px] font-bold text-emerald-700">
+                🎉 Deine Ersparnis: {discount ? eur(discountAmount) + ' Rabatt' : ''}
+                {discount && missing === 0 ? ' + ' : ''}
+                {missing === 0 ? 'Gratis-Versand' : ''}
+              </p>
+            )}
           </div>
 
           <p className="mt-3 px-6 text-center text-[10.5px] leading-relaxed text-slate-400">

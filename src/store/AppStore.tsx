@@ -45,10 +45,15 @@ const SEED_NOTIFS: NotifItem[] = [
   { id: 'n4', kind: 'community', title: 'Neue Reaktion', body: 'Jules Berger gefällt dein Lifting-Ergebnis.', ago: 'vor 3 Tagen', read: true, link: '/community/post/p1' },
 ];
 
+export interface ToastAction {
+  label: string;
+  run: () => void;
+}
 export interface Toast {
   id: number;
   msg: string;
-  icon?: 'check' | 'heart' | 'cart' | 'info' | 'star';
+  icon?: 'check' | 'heart' | 'cart' | 'info' | 'star' | 'undo';
+  action?: ToastAction;
 }
 
 interface PersistedState {
@@ -65,6 +70,8 @@ interface PersistedState {
   pointsLog: { id: string; title: string; delta: number }[];
   earnedCerts: string[];
   pushHintDismissed: boolean;
+  profile: { name: string; studio: string; city: string };
+  favoriteCourses: string[];
   comments: Record<string, Comment[]>;
   userPosts: Post[];
   rewardPoints: number;
@@ -95,6 +102,8 @@ const DEFAULT_STATE: PersistedState = {
   ],
   earnedCerts: ['reanimation'],
   pushHintDismissed: false,
+  profile: { name: demoUser.name, studio: demoUser.studio, city: demoUser.city },
+  favoriteCourses: [],
   comments: {},
   userPosts: [],
   rewardPoints: demoUser.rewardPoints,
@@ -142,6 +151,14 @@ export interface AppState extends PersistedState {
   // Community
   toggleLike: (postId: string) => void;
   setLessonNote: (lessonId: string, text: string) => void;
+  updateProfile: (patch: Partial<{ name: string; studio: string; city: string }>) => void;
+  toggleCourseFav: (courseId: string) => void;
+  isCourseFav: (courseId: string) => boolean;
+  redeemPerk: (title: string, cost: number) => boolean;
+  searchOpen: boolean;
+  openSearch: () => void;
+  closeSearch: () => void;
+  lightboxClose: () => void;
   dismissPushHint: () => void;
   setOffline: (v: boolean) => void;
   offline: boolean;
@@ -170,7 +187,8 @@ export interface AppState extends PersistedState {
   clearDiscount: () => void;
   // Misc
   toasts: Toast[];
-  toast: (msg: string, icon?: Toast['icon']) => void;
+  dismissToast: (id: number) => void;
+  toast: (msg: string, icon?: Toast['icon'], action?: ToastAction) => void;
   resetDemo: () => void;
   updateSettings: (s: Partial<PersistedState['settings']>) => void;
   certificates: { id: string; courseId: string; issuedISO: string; certId: string }[];
@@ -200,10 +218,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [state]);
 
-  const toast = useCallback((msg: string, icon: Toast['icon'] = 'check') => {
+  const dismissToast = useCallback((id: number) => setToasts((t) => t.filter((x) => x.id !== id)), []);
+  const toast = useCallback((msg: string, icon: Toast['icon'] = 'check', action?: ToastAction) => {
     const id = toastId.current++;
-    setToasts((t) => [...t, { id, msg, icon }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2600);
+    setToasts((t) => [...t, { id, msg, icon, action }]);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), action ? 5200 : 2600);
   }, []);
 
   // ── Cart ─────────────────────────────────────────────
@@ -239,12 +258,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const removeFromCart = useCallback((productId: string, variantId: string) => {
-    setState((s) => ({
-      ...s,
-      cart: s.cart.filter((c) => !(c.productId === productId && c.variantId === variantId)),
-    }));
-  }, []);
+  const removeFromCart = useCallback(
+    (productId: string, variantId: string) => {
+      const removed = stateRef.current.cart.find(
+        (c) => c.productId === productId && c.variantId === variantId,
+      );
+      setState((s) => ({
+        ...s,
+        cart: s.cart.filter((c) => !(c.productId === productId && c.variantId === variantId)),
+      }));
+      if (removed) {
+        setTimeout(() => {
+          toast('Position entfernt', 'undo', {
+            label: 'Rückgängig',
+            run: () =>
+              setState((s) =>
+                s.cart.some((c) => c.productId === removed.productId && c.variantId === removed.variantId)
+                  ? s
+                  : { ...s, cart: [...s.cart, removed] },
+              ),
+          });
+        }, 60);
+      }
+    },
+    [toast],
+  );
 
   const clearCart = useCallback(() => setState((s) => ({ ...s, cart: [] })), []);
 
@@ -418,6 +456,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, lessonNotes: { ...s.lessonNotes, [lessonId]: text } }));
   }, []);
   const dismissPushHint = useCallback(() => setState((s) => ({ ...s, pushHintDismissed: true })), []);
+  const updateProfile = useCallback((patch: Partial<{ name: string; studio: string; city: string }>) => {
+    setState((s) => ({ ...s, profile: { ...s.profile, ...patch } }));
+    toast('Profil gespeichert', 'check');
+  }, []);
+  const toggleCourseFav = useCallback((courseId: string) => {
+    setState((s) => ({
+      ...s,
+      favoriteCourses: s.favoriteCourses.includes(courseId)
+        ? s.favoriteCourses.filter((f) => f !== courseId)
+        : [...s.favoriteCourses, courseId],
+    }));
+  }, []);
+  const isCourseFav = useCallback((courseId: string) => state.favoriteCourses.includes(courseId), [state.favoriteCourses]);
+  const redeemPerk = useCallback(
+    (title: string, cost: number) => {
+      if (stateRef.current.rewardPoints < cost) {
+        toast('Noch nicht genug Punkte', 'info');
+        return false;
+      }
+      setState((s) => ({
+        ...s,
+        rewardPoints: s.rewardPoints - cost,
+        pointsLog: [{ id: 'pl' + Date.now(), title: 'Eingelöst: ' + title, delta: -cost }, ...s.pointsLog].slice(0, 12),
+      }));
+      toast(title + ' eingelöst 🎁', 'star');
+      return true;
+    },
+    [toast],
+  );
+  const lightboxClose = useCallback(() => {
+    (document.querySelector('button[aria-label="Zoom schließen"]') as HTMLElement | null)?.click();
+  }, []);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const openSearch = useCallback(() => setSearchOpen(true), []);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
 
   const toggleCommentLike = useCallback((postId: string, commentId: string) => {
     setState((s) => {
@@ -604,6 +677,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleCommentLike,
     isCommentLiked,
     setLessonNote,
+    updateProfile,
+    toggleCourseFav,
+    isCourseFav,
+    redeemPerk,
+    searchOpen,
+    openSearch,
+    closeSearch,
+    lightboxClose,
     dismissPushHint,
     setOffline,
     offline,
@@ -618,6 +699,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     deleteComment,
     allPosts,
     toasts,
+    dismissToast,
     toast,
     resetDemo,
     updateSettings,

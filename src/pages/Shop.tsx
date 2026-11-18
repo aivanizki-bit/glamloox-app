@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Search, X, SlidersHorizontal } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Search, X, SlidersHorizontal, LayoutGrid, List as ListIcon, Heart } from 'lucide-react';
 import { products, categories, type CategoryId } from '../data/products';
 import { useApp } from '../store/AppStore';
-import { TopBar, CartButton, Chip, ProductCard, ProductCardMini, EmptyState, BellButton } from '../components/ui';
+import { TopBar, CartButton, Chip, ProductCard, ProductCardMini, EmptyState, BellButton, SmartImage, HeartButton } from '../components/ui';
+import { eur } from '../store/AppStore';
 
 const vendors = ['Alle Marken', ...Array.from(new Set(products.map((p) => p.vendor)))];
 
@@ -20,6 +21,7 @@ export default function Shop() {
   const [query, setQuery] = useState('');
   const [vendor, setVendor] = useState(() => resolveVendor(brandParam));
   const [neuOnly, setNeuOnly] = useState(false);
+  const [listView, setListView] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [sort, setSort] = useState<'beliebt' | 'preis-auf' | 'preis-ab'>('beliebt');
   const [favOnly, setFavOnly] = useState(false);
@@ -58,6 +60,18 @@ export default function Shop() {
         title="Shop"
         right={
           <>
+            <Link
+              to="/profile/favorites"
+              aria-label="Favoriten"
+              className="tap relative flex h-9 w-9 items-center justify-center rounded-full text-deep-900 active:bg-mist-100"
+            >
+              <Heart className={`h-[20px] w-[20px] ${favorites.length > 0 ? 'fill-royal-600 text-royal-600' : ''}`} aria-hidden />
+              {favorites.length > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-royal-600 px-1 text-[9.5px] font-bold text-white">
+                  {favorites.length}
+                </span>
+              )}
+            </Link>
             <BellButton />
             <CartButton />
           </>
@@ -176,7 +190,30 @@ export default function Shop() {
         </section>
       )}
 
-      {/* Ergebniszähler */}
+      {/* R7: Aktive Filter-Chips */}
+      {(vendor !== 'Alle Marken' || catParam !== 'alle' || favOnly || neuOnly) && (
+        <div className="flex flex-wrap gap-1.5 px-4 pb-1 pt-2">
+          {[
+            catParam !== 'alle' ? { key: 'cat', label: categories.find((c) => c.id === catParam)!.label, clear: () => setCat('alle') } : null,
+            vendor !== 'Alle Marken' ? { key: 'v', label: vendor, clear: () => setVendor('Alle Marken') } : null,
+            favOnly ? { key: 'f', label: '♥ Favoriten', clear: () => setFavOnly(false) } : null,
+            neuOnly ? { key: 'n', label: '✦ Neu', clear: () => setNeuOnly(false) } : null,
+          ]
+            .filter(Boolean)
+            .map((chip) => (
+              <button
+                key={chip!.key}
+                onClick={chip!.clear}
+                className="tap flex items-center gap-1 rounded-full bg-deep-900 px-2.5 py-1 text-[11px] font-bold text-white"
+              >
+                {chip!.label}
+                <X className="h-3 w-3" aria-hidden />
+              </button>
+            ))}
+        </div>
+      )}
+
+      {/* Ergebniszähler + Ansicht */}
       <div className="flex items-center justify-between px-4 pb-2 pt-3">
         <p className="text-[12.5px] font-medium text-slate-500">
           {filtered.length} {filtered.length === 1 ? 'Produkt' : 'Produkte'}
@@ -187,17 +224,39 @@ export default function Shop() {
             </>
           )}
         </p>
-        {favorites.length > 0 && (
-          <p className="text-[12.5px] font-medium text-slate-400">{favorites.length} gemerkt ♥</p>
-        )}
+        <div className="flex items-center gap-2.5">
+          {favorites.length > 0 && <p className="text-[12.5px] font-medium text-slate-400">{favorites.length} ♥</p>}
+          <button
+            onClick={() => setListView((v) => !v)}
+            aria-label={listView ? 'Grid-Ansicht' : 'Listen-Ansicht'}
+            className="tap flex h-8 w-8 items-center justify-center rounded-lg border border-mist-200 bg-white text-deep-900 shadow-card"
+          >
+            {listView ? <LayoutGrid className="h-4 w-4" aria-hidden /> : <ListIcon className="h-4 w-4" aria-hidden />}
+          </button>
+        </div>
       </div>
 
       {/* Grid */}
       {filtered.length === 0 ? (
+        <>
+        {query && (
+          <div className="flex flex-wrap justify-center gap-2 px-4 pb-1">
+            {['Booster', 'Pads', 'Timer', 'Farbe', 'Kleber'].map((s) => (
+              <button
+                key={s}
+                onClick={() => setQuery(s)}
+                className="tap rounded-full border border-royal-200 bg-royal-50 px-3.5 py-1.5 text-[12px] font-bold text-royal-700"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
         <EmptyState
           icon={<Search className="h-7 w-7" aria-hidden />}
           title="Nichts gefunden"
-          text="Versuche einen anderen Suchbegriff oder setze die Filter zurück."
+          text="Versuche einen anderen Suchbegriff oder setze die Filter zurück. Beliebte Suchbegriffe:"
+          // Vorschlags-Chips nach EmptyState (siehe unten)
           action={
             <button
               onClick={() => {
@@ -212,12 +271,37 @@ export default function Shop() {
             </button>
           }
         />
+        </>
       ) : (
-        <div className="anim-fade-in grid grid-cols-2 gap-3 px-4">
-          {filtered.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+        <>
+          {listView ? (
+            <div className="anim-fade-in space-y-2.5 px-4">
+              {filtered.map((p) => (
+                <Link
+                  key={p.id}
+                  to={`/shop/p/${p.id}`}
+                  className="tap flex items-center gap-3 rounded-2xl border border-mist-200 bg-white p-3 shadow-card"
+                >
+                  <div className="relative h-[64px] w-[64px] shrink-0 overflow-hidden rounded-xl bg-white">
+                    <SmartImage src={p.images[0]} alt={p.title} className="h-full w-full" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-royal-600">{p.vendor}</p>
+                    <p className="line-clamp-1 text-[13.5px] font-bold text-deep-900">{p.shortTitle}</p>
+                    <p className="mt-0.5 text-[14px] font-extrabold text-deep-950">{eur(p.price)}</p>
+                  </div>
+                  <HeartButton productId={p.id} className="!bg-white" />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="anim-fade-in grid grid-cols-2 gap-3 px-4">
+              {filtered.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { WifiOff, MessageSquareHeart, SendHorizontal, X, Home as HomeIcon } from 'lucide-react';
+import { WifiOff, MessageSquareHeart, SendHorizontal, X, Home as HomeIcon, ShoppingBag, GraduationCap } from 'lucide-react';
+import { products as shopProducts } from '../data/products';
+import { courses as allCourses } from '../data/courses';
 import { useApp } from '../store/AppStore';
 
 /** R41: Splash-Screen beim ersten Load einer Session. */
@@ -9,7 +12,7 @@ export function Splash() {
   useEffect(() => {
     if (!show) return;
     sessionStorage.setItem('glx-splash', '1');
-    const t = setTimeout(() => setShow(false), 1100);
+    const t = setTimeout(() => setShow(false), 850);
     return () => clearTimeout(t);
   }, [show]);
   if (!show) return null;
@@ -127,6 +130,107 @@ export function FeedbackSheet() {
           >
             <SendHorizontal className="h-[18px] w-[18px]" aria-hidden /> Feedback senden (Demo)
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** R67: Globale Suche über Shop, Academy & Community. */
+export function SearchOverlay() {
+  const { searchOpen, closeSearch, allPosts } = useApp();
+  const navigate = useNavigate();
+  const [q, setQ] = useState('');
+  const products = [...shopProducts];
+  const courses = allCourses;
+  if (!searchOpen) return null;
+  const query = q.trim().toLowerCase();
+  const prodHits = query ? products.filter((p) => p.shortTitle.toLowerCase().includes(query) || p.vendor.toLowerCase().includes(query)).slice(0, 4) : [];
+  const courseHits = query ? courses.filter((c) => c.title.toLowerCase().includes(query)).slice(0, 3) : [];
+  const postHits = query ? allPosts.filter((p) => p.title?.toLowerCase().includes(query) || p.text.toLowerCase().includes(query)).slice(0, 4) : [];
+  const go = (to: string) => {
+    closeSearch();
+    setQ('');
+    navigate(to);
+  };
+  return (
+    <div className="absolute inset-0 z-50 flex flex-col">
+      <div className="anim-fade-in absolute inset-0 bg-deep-950/45 backdrop-blur-sm" onClick={closeSearch} aria-hidden />
+      <div className="anim-sheet relative mt-auto flex max-h-[80%] flex-col rounded-t-3xl bg-white pb-[env(safe-area-inset-bottom)] shadow-float">
+        <div className="flex items-center gap-2.5 border-b border-mist-200 px-4 pb-3 pt-4">
+          <input
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Produkte, Kurse, Beiträge…"
+            aria-label="Alles durchsuchen"
+            className="h-11 flex-1 rounded-xl border border-mist-200 bg-mist-50 px-4 text-[14px] font-medium text-deep-950 outline-none placeholder:text-slate-400 focus:border-royal-400"
+          />
+          <button
+            onClick={closeSearch}
+            aria-label="Suche schließen"
+            className="tap flex h-11 w-11 items-center justify-center rounded-xl text-slate-400 active:bg-mist-100"
+          >
+            <X className="h-5 w-5" aria-hidden />
+          </button>
+        </div>
+        <div className="app-scroll flex-1 overflow-y-auto px-4 py-3">
+          {!query && (
+            <p className="px-1 py-6 text-center text-[13px] text-slate-400">
+              Tippe, um alles zu durchsuchen – Produkte, Kurse & Beiträge 💙
+            </p>
+          )}
+          {query && prodHits.length === 0 && courseHits.length === 0 && postHits.length === 0 && (
+            <p className="px-1 py-6 text-center text-[13px] text-slate-400">Nichts gefunden für „{q}“</p>
+          )}
+          {prodHits.length > 0 && (
+            <>
+              <p className="px-1 pb-1.5 pt-1 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">Shop</p>
+              {prodHits.map((p) => (
+                <button key={p.id} onClick={() => go(`/shop/p/${p.id}`)} className="tap flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left active:bg-mist-50">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-royal-50 text-royal-600">
+                    <ShoppingBag className="h-4 w-4" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] font-bold text-deep-900">{p.shortTitle}</span>
+                    <span className="block text-[11px] text-slate-400">{p.vendor} · Shop</span>
+                  </span>
+                </button>
+              ))}
+            </>
+          )}
+          {courseHits.length > 0 && (
+            <>
+              <p className="px-1 pb-1.5 pt-2 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">Academy</p>
+              {courseHits.map((c) => (
+                <button key={c.id} onClick={() => go(`/academy/course/${c.id}`)} className="tap flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left active:bg-mist-50">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                    <GraduationCap className="h-4 w-4" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] font-bold text-deep-900">{c.title}</span>
+                    <span className="block text-[11px] text-slate-400">{c.level} · Academy</span>
+                  </span>
+                </button>
+              ))}
+            </>
+          )}
+          {postHits.length > 0 && (
+            <>
+              <p className="px-1 pb-1.5 pt-2 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">Community</p>
+              {postHits.map((p) => (
+                <button key={p.id} onClick={() => go(`/community/post/${p.id}`)} className="tap flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left active:bg-mist-50">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-pink-50 text-pink-500">
+                    <MessageSquareHeart className="h-4 w-4" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] font-bold text-deep-900">{p.title ?? p.text.slice(0, 40) + '…'}</span>
+                    <span className="block text-[11px] text-slate-400">Beitrag · Community</span>
+                  </span>
+                </button>
+              ))}
+            </>
+          )}
         </div>
       </div>
     </div>

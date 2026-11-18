@@ -103,7 +103,9 @@ export default function LessonPlayer() {
     setTime(Math.round(pct * total));
   };
 
-  const moduleTitle = course.modules.find((m) => m.id === lesson.moduleId)?.title ?? '';
+  const moduleIdx = course.modules.findIndex((m) => m.id === lesson.moduleId);
+  const moduleTitle =
+    `Modul ${moduleIdx + 1} von ${course.modules.length} · ${course.modules[moduleIdx]?.title ?? ''}`;
 
   return (
     <div className="anim-fade-in min-h-full bg-mist-50 pb-8">
@@ -318,9 +320,12 @@ export default function LessonPlayer() {
           {prev ? (
             <Link
               to={`/academy/course/${course.id}/lesson/${prev.id}`}
-              className="tap flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-mist-200 bg-white text-[12.5px] font-bold text-deep-900 shadow-card"
+              className="tap flex h-11 flex-1 flex-col items-center justify-center rounded-xl border border-mist-200 bg-white text-deep-900 shadow-card"
             >
-              <ArrowLeft className="h-4 w-4" aria-hidden /> Vorherige
+              <span className="flex items-center gap-1 text-[10.5px] font-semibold text-slate-400">
+                <ArrowLeft className="h-3 w-3" aria-hidden /> Vorherige
+              </span>
+              <span className="max-w-full truncate px-2 text-[11px] font-bold">{prev.title}</span>
             </Link>
           ) : (
             <div className="flex-1" />
@@ -328,9 +333,12 @@ export default function LessonPlayer() {
           {next ? (
             <Link
               to={`/academy/course/${course.id}/lesson/${next.id}`}
-              className="tap flex h-11 flex-[1.6] items-center justify-center gap-1.5 rounded-xl bg-deep-900 text-[12.5px] font-bold text-white shadow-card"
+              className="tap flex h-11 flex-[1.6] flex-col items-center justify-center rounded-xl bg-deep-900 text-white shadow-card"
             >
-              Nächste Lektion <ArrowRight className="h-4 w-4" aria-hidden />
+              <span className="flex items-center gap-1 text-[10.5px] font-semibold text-white/60">
+                Nächste Lektion <ArrowRight className="h-3 w-3" aria-hidden />
+              </span>
+              <span className="max-w-full truncate px-2 text-[11px] font-bold">{next.title}</span>
             </Link>
           ) : (
             <Link
@@ -350,21 +358,24 @@ export default function LessonPlayer() {
 function Quiz({ lessonId }: { lessonId: string }) {
   const { toggleLesson, progress, toast } = useApp();
   const [answers, setAnswers] = useState<Record<number, number>>({});
-  const questions = [
+  const questions = [ // eslint-disable-line
     {
       q: 'Was zeichnet den Korean Lash Lift gegenüber dem klassischen Lifting aus?',
       a: ['Mehr Schwung und längere Haltbarkeit', 'Er nutzt ausschließlich Wachs', 'Er dauert nur 10 Minuten'],
       correct: 0,
+      why: 'Die koreanische Methode arbeitet feiner und hält durch das Layering deutlich länger.',
     },
     {
       q: 'Worauf solltest du bei sehr feinen Wimpern besonders achten?',
       a: ['Möglichst große Pads verwenden', 'Sanfte Fixierung, z. B. Ultra-Sticky-Pads', 'Step 2 doppelt so lange einwirken lassen'],
       correct: 1,
+      why: 'Zu viel Zug bei feinen Wimpern führt zu Brüchen – sanfte Systeme sind hier Gold wert.',
     },
     {
       q: 'Was gehört zu einer professionellen Aftercare-Beratung?',
       a: ['48 Stunden nicht waschen & Booster-Empfehlung', 'Direkt wieder Extensions setzen', 'Ölhaltige Produkte direkt danach'],
       correct: 0,
+      why: 'Wasser in den ersten 48 Stunden schwächt die neue Form – plus Booster-Empfehlung für den Alltag.',
     },
   ];
   const answeredAll = Object.keys(answers).length === questions.length;
@@ -406,6 +417,11 @@ function Quiz({ lessonId }: { lessonId: string }) {
                   </button>
                 );
               })}
+              {answers[qi] !== undefined && 'why' in q && (
+                <p className="anim-fade-in mt-1.5 rounded-xl bg-mist-50 px-3.5 py-2.5 text-[11.5px] leading-relaxed text-slate-500">
+                  💡 {(q as { why?: string }).why}
+                </p>
+              )}
             </div>
           </div>
         ))}
@@ -425,6 +441,14 @@ function Quiz({ lessonId }: { lessonId: string }) {
               className="tap mt-3 rounded-full bg-deep-900 px-5 py-2 text-[12.5px] font-bold text-white"
             >
               Nochmal versuchen
+            </button>
+          )}
+          {allCorrect && (
+            <button
+              onClick={() => setAnswers({})}
+              className="tap mt-2 text-[11.5px] font-semibold text-royal-600"
+            >
+              Nochmal üben ↺
             </button>
           )}
           {allCorrect && !done && (

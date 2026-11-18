@@ -52,7 +52,7 @@ const heroSlides = [
 ];
 
 export default function Home() {
-  const { courseProgress, enrolled, pushHintDismissed, dismissPushHint, toast } = useApp();
+  const { courseProgress, enrolled, pushHintDismissed, dismissPushHint, toast, rewardPoints, recentlyViewed, openSearch } = useApp();
   const [mail, setMail] = useState('');
   const [showTop, setShowTop] = useState(false);
   const slideRef = useRef<HTMLDivElement>(null);
@@ -102,14 +102,14 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-1">
           <BellButton />
-          <Link
-            to="/shop"
-            aria-label="Suche"
+          <button
+            onClick={openSearch}
+            aria-label="Alles durchsuchen"
             className="tap mr-1 flex h-9 items-center gap-2 rounded-full bg-mist-100 px-3.5 text-slate-400"
           >
             <Search className="h-4 w-4" aria-hidden />
             <span className="text-[13px] font-medium">Produkte suchen…</span>
-          </Link>
+          </button>
           <CartButton />
         </div>
       </header>
@@ -273,6 +273,40 @@ export default function Home() {
             </Link>
           ))}
         </div>
+      </section>
+
+      {/* R57: Lernstreak + R61: Zuletzt angesehen */}
+      <section className="pt-6">
+        <div className="grid grid-cols-2 gap-3 px-4">
+          <Link to="/academy/my" className="tap flex items-center gap-3 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 to-red-500 text-[18px]">🔥</span>
+            <span className="min-w-0">
+              <span className="block text-[15px] font-extrabold leading-none text-deep-950">4 Tage</span>
+              <span className="block truncate text-[10.5px] font-semibold text-slate-400">Lernstreak · Demo</span>
+            </span>
+          </Link>
+          <Link to="/profile/rewards" className="tap flex items-center gap-3 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gold-400 to-gold-500 text-[18px]">⭐</span>
+            <span className="min-w-0">
+              <span className="block text-[15px] font-extrabold leading-none text-deep-950">{rewardPoints}</span>
+              <span className="block truncate text-[10.5px] font-semibold text-slate-400">Reward-Punkte</span>
+            </span>
+          </Link>
+        </div>
+        {recentlyViewed.length > 0 && (
+          <div className="mt-4">
+            <div className="flex items-center justify-between px-4 pb-2">
+              <h2 className="text-[14px] font-bold text-deep-900">Zuletzt angesehen</h2>
+              <Link to="/shop" className="text-[12px] font-semibold text-royal-600">Shop →</Link>
+            </div>
+            <div className="no-scrollbar flex gap-3 overflow-x-auto px-4 pb-1">
+              {recentlyViewed.slice(0, 6).map((id) => {
+                const p = products.find((x) => x.id === id);
+                return p ? <ProductCardMini key={id} product={p} /> : null;
+              })}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* ── Bestseller ─────────────────────────── */}
@@ -477,6 +511,26 @@ export default function Home() {
         </div>
       </section>
 
+      {/* R60: Warum GLAMLOOX */}
+      <section className="pt-7">
+        <div className="mx-4 rounded-3xl border border-royal-100 bg-white p-4 shadow-card">
+          <p className="text-[15px] font-extrabold tracking-tight text-deep-950">Warum GLAMLOOX?</p>
+          {[
+            ['💙', 'Hormonfreie Formeln', 'auch für Schwangere geeignet'],
+            ['🌱', 'Vegan & tierversuchsfrei', 'ohne Kompromisse bei der Wirkung'],
+            ['👩‍🏫', 'Academy & Community', 'Wissen von Profis, für Profis'],
+          ].map(([e, t, s]) => (
+            <div key={t} className="mt-3 flex items-start gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-royal-50 text-[16px]">{e}</span>
+              <span>
+                <span className="block text-[13px] font-bold text-deep-900">{t}</span>
+                <span className="block text-[11.5px] text-slate-400">{s}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* R6: Newsletter-Card */}
       <section className="pt-7">
         <div className="mx-4 overflow-hidden rounded-3xl bg-gradient-to-br from-deep-950 via-deep-900 to-royal-800 p-5 shadow-float">
@@ -497,7 +551,7 @@ export default function Home() {
             />
             <button
               onClick={() => {
-                if (mail.includes('@')) {
+                if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) {
                   toast('Demo: Anmeldung erfasst 💙', 'star');
                   setMail('');
                 } else {
@@ -530,17 +584,31 @@ export default function Home() {
           Partner-Brands im Shop
         </p>
         <div className="no-scrollbar mt-3 flex gap-2.5 overflow-x-auto pb-1">
-          {['BRONSUN', 'ÉLAN', 'InLei', 'MAXYMOVA', 'Noemi', 'OkO', 'ZOLA', 'A.DAN'].map((b) => (
-            <Link
-              key={b}
-              to={`/shop?brand=${encodeURIComponent(b)}`}
-              className="tap shrink-0 rounded-full border border-mist-200 bg-mist-50 px-3.5 py-2 text-[12.5px] font-bold tracking-wide text-slate-500 active:bg-royal-50 active:text-royal-700"
-            >
-              {b}
-            </Link>
+          {['BRONSUN', 'ÉLAN', 'InLei', 'MAXYMOVA', 'Noemi', 'OkO', 'ZOLA', 'A.DAN'].map((b) => {
+            const count = products.filter((p) => p.vendor.toLowerCase() === b.toLowerCase()).length;
+            return (
+              <Link
+                key={b}
+                to={`/shop?brand=${encodeURIComponent(b)}`}
+                className="tap shrink-0 rounded-full border border-mist-200 bg-mist-50 px-3.5 py-2 text-[12.5px] font-bold tracking-wide text-slate-500 active:bg-royal-50 active:text-royal-700"
+              >
+                {b} <span className="font-semibold text-slate-300">· {count}</span>
+              </Link>
+            );
+          })}
+        </div>
+        <div className="mt-4 flex justify-center gap-4">
+          {[
+            ['Impressum', 'https://glamloox.net/policies/legal-notice'],
+            ['Datenschutz', 'https://glamloox.net/policies/privacy-policy'],
+            ['AGB', 'https://glamloox.net/policies/terms-of-service'],
+          ].map(([l, href]) => (
+            <a key={l} href={href} target="_blank" rel="noreferrer" className="text-[10.5px] font-semibold text-slate-300 underline">
+              {l}
+            </a>
           ))}
         </div>
-        <p className="mt-5 text-center text-[10.5px] leading-relaxed text-slate-300">
+        <p className="mt-3 text-center text-[10.5px] leading-relaxed text-slate-300">
           Interactive Concept Demo · Produkte & Preise von glamloox.net ·
           Community-Beiträge & Termine sind Beispieldaten
         </p>

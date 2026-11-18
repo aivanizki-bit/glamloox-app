@@ -1,12 +1,30 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { useApp } from '../store/AppStore';
 import { Toasts } from './ui';
 import { NotificationsSheet } from './Notifications';
-import { Splash, OfflineBanner, FeedbackSheet } from './GlobalOverlays';
+import { Splash, OfflineBanner, FeedbackSheet, SearchOverlay } from './GlobalOverlays';
 
 /**
  * Desktop-Präsentation: zentriertes „iPhone“ mit hochwertigem Hintergrund.
  * Auf Smartphones füllt die App den ganzen Bildschirm.
  */
+/** R68: Escape schließt alle Overlays. */
+function EscapeHandler() {
+  const { notifOpen, feedbackOpen, searchOpen, closeNotifs, closeFeedback, closeSearch, lightboxClose } = useApp();
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (searchOpen) closeSearch();
+      else if (feedbackOpen) closeFeedback();
+      else if (notifOpen) closeNotifs();
+      else lightboxClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [notifOpen, feedbackOpen, searchOpen, closeNotifs, closeFeedback, closeSearch, lightboxClose]);
+  return null;
+}
+
 export function PhoneShell({ children }: { children: ReactNode }) {
   const isStandalone = useIsMobileScreen();
 
@@ -18,9 +36,11 @@ export function PhoneShell({ children }: { children: ReactNode }) {
     return (
       <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-white text-deep-950">
         <OfflineBanner />
+        <EscapeHandler />
         {children}
         <Toasts />
         <FeedbackSheet />
+        <SearchOverlay />
         <Splash />
         <NotificationsSheet />
       </div>
@@ -93,6 +113,7 @@ export function PhoneShell({ children }: { children: ReactNode }) {
         <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[52px] bg-black p-[3px] shadow-2xl">
           <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[49px] bg-white">
             <OfflineBanner />
+        <EscapeHandler />
             {/* Dynamic Island */}
             <div
               className="pointer-events-none absolute left-1/2 top-[10px] z-50 h-[30px] w-[110px] -translate-x-1/2 rounded-full bg-black"
@@ -101,6 +122,7 @@ export function PhoneShell({ children }: { children: ReactNode }) {
             <div className="flex h-full flex-col pt-[42px]">{children}</div>
             <Toasts />
         <FeedbackSheet />
+        <SearchOverlay />
         <Splash />
         <NotificationsSheet />
           </div>

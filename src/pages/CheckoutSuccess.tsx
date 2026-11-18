@@ -1,11 +1,12 @@
 import { Link, useParams } from 'react-router-dom';
-import { CheckCircle2, Package, GraduationCap, Home as HomeIcon } from 'lucide-react';
+import { CheckCircle2, Package, GraduationCap, Home as HomeIcon, Share2, Timer } from 'lucide-react';
 import { useApp, eur, productById } from '../store/AppStore';
+import { events } from '../data/events';
 import { TopBar, SmartImage } from '../components/ui';
 
 export default function CheckoutSuccess() {
   const { orderId } = useParams();
-  const { orders } = useApp();
+  const { orders, toast } = useApp();
   const order = orders.find((o) => o.id === orderId) ?? orders[0];
 
   return (
@@ -14,8 +15,8 @@ export default function CheckoutSuccess() {
 
       {/* Konfetti (Demo) */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[420px] overflow-hidden" aria-hidden>
-        {Array.from({ length: 26 }).map((_, i) => {
-          const colors = ['#2E5BF0', '#7A96F8', '#C5D6FE', '#D9A83B', '#FFFFFF'];
+        {Array.from({ length: 34 }).map((_, i) => {
+          const colors = ['#2E5BF0', '#7A96F8', '#C5D6FE', '#D9A83B', '#E8B54D', '#7A96F8', '#FFFFFF'];
           const left = ((i * 61) % 96) + 2;
           const delay = (i % 9) * 0.13;
           const dur = 2.1 + (i % 5) * 0.35;
@@ -101,6 +102,34 @@ export default function CheckoutSuccess() {
           >
             <Package className="h-[18px] w-[18px]" aria-hidden /> Meine Bestellungen
           </Link>
+          {/* R14: Bestellung teilen */}
+          <button
+            onClick={async () => {
+              try { await navigator.clipboard.writeText('Bestellung ' + order.id + ' – GLAMLOOX Demo'); } catch { /* Demo */ }
+              toast('Bestellbestätigung kopiert (Demo)', 'star');
+            }}
+            className="tap flex h-[46px] w-full items-center justify-center gap-2 rounded-2xl border border-mist-200 bg-white text-[13px] font-bold text-deep-900 shadow-card"
+          >
+            <Share2 className="h-4 w-4" aria-hidden /> Bestellbestätigung teilen
+          </button>
+
+          {/* R15: Nächster Event-Teaser */}
+          <Link
+            to={`/academy/event/${[...events].sort((a, b) => a.dateISO.localeCompare(b.dateISO))[0].id}`}
+            className="tap mt-1 flex items-center gap-3 rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 to-white p-3.5 shadow-card"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-500 text-white">
+              <Timer className="h-[17px] w-[17px]" aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[12.5px] font-bold text-deep-900">Nächstes Live-Event</span>
+              <span className="block truncate text-[11.5px] text-slate-500">
+                {[...events].sort((a, b) => a.dateISO.localeCompare(b.dateISO))[0].title}
+              </span>
+            </span>
+            <span className="shrink-0 rounded-full bg-deep-900 px-3 py-1.5 text-[11px] font-bold text-white">Anmelden</span>
+          </Link>
+
           <div className="flex gap-2.5">
             <Link
               to="/academy"

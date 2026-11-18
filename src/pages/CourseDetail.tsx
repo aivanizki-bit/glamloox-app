@@ -1,6 +1,8 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   ChevronLeft,
+  Download,
+  ClipboardCheck,
   UserRound,
   PlayCircle,
   FileText,
@@ -25,7 +27,7 @@ export default function CourseDetail() {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const course = courses.find((c) => c.id === courseId);
-  const { progress, enrolled, enrollCourse, courseProgress } = useApp();
+  const { progress, enrolled, enrollCourse, courseProgress, toast } = useApp();
 
   if (!course) {
     return (
@@ -105,6 +107,42 @@ export default function CourseDetail() {
           </ul>
         </div>
 
+        {/* R19: Kursmaterialien */}
+        <div className="mt-3 rounded-2xl border border-mist-200 bg-white p-4 shadow-card">
+          <p className="flex items-center gap-2 text-[13px] font-bold text-deep-900">
+            <Download className="h-4 w-4 text-royal-600" aria-hidden /> Kursmaterialien
+          </p>
+          <div className="mt-2.5 space-y-2">
+            {['Materialliste & Einkaufstipps (PDF)', 'Einwirkzeiten-Tabelle (PDF)', 'Nachsorge-Vorlage für Kundinnen (PDF)'].map((m) => (
+              <div key={m} className="flex items-center justify-between rounded-xl bg-mist-50 px-3.5 py-2.5">
+                <p className="truncate text-[12.5px] font-semibold text-deep-900">{m}</p>
+                <button
+                  onClick={() => toast('Demo: Material würde als PDF geladen', 'info')}
+                  className="tap shrink-0 rounded-full bg-royal-600 px-3 py-1.5 text-[11px] font-bold text-white"
+                >
+                  Laden
+                </button>
+              </div>
+            ))}
+            <p className="text-[10px] text-slate-400">Demo-Materialien für den Prototyp.</p>
+          </div>
+        </div>
+
+        {/* R83: Voraussetzungen */}
+        <div className="mt-3 rounded-2xl border border-mist-200 bg-white p-4 shadow-card">
+          <p className="flex items-center gap-2 text-[13px] font-bold text-deep-900">
+            <ClipboardCheck className="h-4 w-4 text-royal-600" aria-hidden /> Voraussetzungen
+          </p>
+          <ul className="mt-2 space-y-1.5">
+            {course.voraussetzungen.map((v) => (
+              <li key={v} className="flex items-start gap-2 text-[12.5px] text-slate-600">
+                <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-royal-500" aria-hidden />
+                {v}
+              </li>
+            ))}
+          </ul>
+        </div>
+
         {/* Beschreibung */}
         <p className="mt-3.5 text-[13.5px] leading-relaxed text-slate-600">{course.description}</p>
 
@@ -147,7 +185,10 @@ export default function CourseDetail() {
 
         {/* Module & Lektionen */}
         <h2 className="mt-6 text-[17px] font-bold tracking-tight text-deep-900">
-          Kursinhalte <span className="font-medium text-slate-400">· {totalLessons(course)} Lektionen</span>
+          Kursinhalte{' '}
+          <span className="font-medium text-slate-400">
+            · {totalLessons(course)} Lektionen · ca. {course.hours} Std. gesamt
+          </span>
         </h2>
         <div className="mt-3 space-y-3">
           {course.modules.map((m, mi) => (

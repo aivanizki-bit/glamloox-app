@@ -1,16 +1,40 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GraduationCap, PlayCircle, Award, ArrowRight, Clock } from 'lucide-react';
 import { courses, allLessonIds } from '../data/courses';
 import { useApp } from '../store/AppStore';
-import { TopBar, SmartImage, ProgressBar, EmptyState } from '../components/ui';
+import { TopBar, SmartImage, ProgressBar, EmptyState, Chip } from '../components/ui';
 
 export default function MyCourses() {
   const { enrolled, courseProgress, certificates, progress } = useApp();
-  const myCourses = courses.filter((c) => enrolled.includes(c.id));
+  const [filter, setFilter] = useState<'alle' | 'laufend' | 'fertig'>('alle');
+  const myCoursesAll = courses.filter((c) => enrolled.includes(c.id));
+  const myCourses = myCoursesAll
+    .filter((c) => {
+      const pct = courseProgress(c.id).pct;
+      if (filter === 'laufend') return pct < 100;
+      if (filter === 'fertig') return pct === 100;
+      return true;
+    });
 
   return (
     <div className="anim-fade-in min-h-full bg-mist-50 pb-6">
       <TopBar title="Meine Kurse" back="/academy" />
+
+      {/* R26: Status-Filter */}
+      <div className="flex gap-2 px-4 pb-2 pt-3">
+        {(
+          [
+            ['alle', `Alle · ${myCoursesAll.length}`],
+            ['laufend', `Laufend · ${myCoursesAll.filter((c) => courseProgress(c.id).pct < 100).length}`],
+            ['fertig', `Abgeschlossen · ${myCoursesAll.filter((c) => courseProgress(c.id).pct === 100).length}`],
+          ] as const
+        ).map(([id, label]) => (
+          <Chip key={id} active={filter === id} onClick={() => setFilter(id)}>
+            {label}
+          </Chip>
+        ))}
+      </div>
 
       {myCourses.length === 0 ? (
         <EmptyState
@@ -53,9 +77,12 @@ export default function MyCourses() {
                     {nextLessonId && !completed && (
                       <Link
                         to={`/academy/course/${c.id}/lesson/${nextLessonId}`}
-                        className="tap mt-2 flex h-9 items-center justify-center gap-1.5 rounded-xl bg-deep-900 text-[12px] font-bold text-white shadow-card"
+                        className="tap mt-2 flex h-9 flex-col items-center justify-center rounded-xl bg-deep-900 text-white shadow-card"
                       >
-                        Weiterlernen <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                        <span className="text-[9.5px] font-semibold text-white/60">Weiterlernen · nächste Lektion</span>
+                        <span className="max-w-full truncate px-2 text-[11px] font-bold">
+                          {c.modules.flatMap((m) => m.lessons).find((l) => l.id === nextLessonId)?.title}
+                        </span>
                       </Link>
                     )}
                     {completed && cert && (

@@ -1,0 +1,16 @@
+{
+  "name": "GLAMLOOX App – Concept Demo",
+  "short_name": "GLAMLOOX",
+  "description": "Interactive Concept Demo: Shop, Academy & Community für Lash- & Brow-Profis.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#061238",
+  "theme_color": "#0A1E5A",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

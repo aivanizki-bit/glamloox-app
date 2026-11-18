@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   ChevronLeft,
+  Download,
   CalendarDays,
   MapPin,
   Video,
@@ -24,6 +25,7 @@ export default function EventDetail() {
   const event = events.find((e) => e.id === eventId);
   const { eventRegs, registerEvent, unregisterEvent, toast, reminders, toggleReminder } = useApp();
   const [signing, setSigning] = useState(false);
+  const [faqOpen, setFaqOpen] = useState<number | null>(0);
   const [justSigned, setJustSigned] = useState(false);
 
   if (!event) {
@@ -98,6 +100,26 @@ export default function EventDetail() {
             {event.host}
           </p>
         </div>
+
+        {/* R51: Live-Countdown */}
+        {(() => {
+          const target = new Date(event.dateISO + 'T' + event.time.slice(0, 5)).getTime();
+          const diff = Math.max(0, target - Date.now());
+          const d = Math.floor(diff / 86400000);
+          const h = Math.floor((diff % 86400000) / 3600000);
+          const m = Math.floor((diff % 3600000) / 60000);
+          const cells: [string, string][] = [[String(d), 'Tage'], [String(h), 'Std.'], [String(m), 'Min.']];
+          return (
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {cells.map(([v, l]) => (
+                <div key={l} className="rounded-xl bg-royal-50 py-2.5 text-center">
+                  <p className="text-[17px] font-extrabold leading-none text-deep-950 tabular-nums">{v}</p>
+                  <p className="mt-0.5 text-[9.5px] font-semibold text-slate-400">{l}</p>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* R25: Teilnehmer-Avatare */}
         <div className="mt-4 flex items-center gap-3 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card">
@@ -180,6 +202,64 @@ export default function EventDetail() {
               <>Anmelden {event.price > 0 ? `· ${eur(event.price)}` : '· Kostenlos'}</>
             )}
           </button>
+        )}
+
+        {/* R52+54: Kalender & Teilen */}
+        <div className="mt-3 flex gap-2.5">
+          <button
+            onClick={() => {
+              const ics = [
+                'BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT',
+                'SUMMARY:' + event.title + ' (GLAMLOOX Demo)',
+                'DTSTART:' + event.dateISO.replace(/-/g, '') + 'T' + event.time.slice(0, 5).replace(':', '') + '00',
+                'DESCRIPTION:' + event.subtitle + ' - Interactive Concept Demo',
+                'LOCATION:' + event.location,
+                'END:VEVENT', 'END:VCALENDAR',
+              ].join('\r\n');
+              const blob = new Blob([ics], { type: 'text/calendar' });
+              const a = document.createElement('a');
+              a.href = URL.createObjectURL(blob);
+              a.download = 'glamloox-' + event.id + '.ics';
+              a.click();
+              toast('Kalender-Datei geladen (Demo)', 'star');
+            }}
+            className="tap flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-deep-900 text-[12.5px] font-bold text-white shadow-card"
+          >
+            <Download className="h-4 w-4" aria-hidden /> Kalender (.ics)
+          </button>
+          <button
+            onClick={async () => {
+              try { await navigator.clipboard.writeText('GLAMLOOX Live-Event: ' + event.title + ' am ' + formatDate(event.dateISO)); } catch { /* Demo */ }
+              toast('Event-Text kopiert (Demo)', 'star');
+            }}
+            className="tap flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-mist-200 bg-white text-[12.5px] font-bold text-deep-900 shadow-card"
+          >
+            Mit Kollegin teilen
+          </button>
+        </div>
+
+        {/* R55: FAQ */}
+        {event.faq && event.faq.length > 0 && (
+          <div className="mt-4 overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-card">
+            <p className="border-b border-mist-200 bg-mist-50 px-4 py-2.5 text-[12px] font-bold uppercase tracking-wide text-slate-400">
+              Häufige Fragen
+            </p>
+            {event.faq.map((f, i) => (
+              <div key={i} className="border-b border-mist-100 last:border-0">
+                <button
+                  onClick={() => setFaqOpen((cur) => (cur === i ? null : i))}
+                  className="tap flex w-full items-center justify-between px-4 py-3 text-left"
+                  aria-expanded={faqOpen === i}
+                >
+                  <span className="text-[13px] font-bold text-deep-900">{f.q}</span>
+                  <span className="text-slate-400">{faqOpen === i ? '−' : '+'}</span>
+                </button>
+                {faqOpen === i && (
+                  <p className="anim-fade-in px-4 pb-3 text-[12.5px] leading-relaxed text-slate-500">{f.a}</p>
+                )}
+              </div>
+            ))}
+          </div>
         )}
 
         {/* R26: Community-Cross-Link */}

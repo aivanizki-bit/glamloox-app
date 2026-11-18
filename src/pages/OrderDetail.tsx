@@ -1,11 +1,11 @@
 import { Link, useParams } from 'react-router-dom';
-import { Truck, CheckCircle2, Package, ReceiptText } from 'lucide-react';
+import { Truck, CheckCircle2, Package, ReceiptText, RotateCcw } from 'lucide-react';
 import { useApp, eur, productById } from '../store/AppStore';
 import { TopBar, SmartImage, EmptyState } from '../components/ui';
 
 export default function OrderDetail() {
   const { orderId } = useParams();
-  const { orders, toast } = useApp();
+  const { orders, toast, addToCart } = useApp();
   const order = orders.find((o) => o.id === orderId);
 
   if (!order) {
@@ -144,6 +144,20 @@ export default function OrderDetail() {
             ))}
           </div>
         </div>
+
+        {/* R45: Bestellung wiederholen */}
+        <button
+          onClick={() => {
+            order.items.forEach((it) => {
+              const p = productById(it.productId);
+              if (p) addToCart(p);
+            });
+            toast('Artikel erneut im Warenkorb', 'cart');
+          }}
+          className="tap mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-royal-600 to-royal-700 py-3.5 text-[13.5px] font-bold text-white shadow-card"
+        >
+          <RotateCcw className="h-4 w-4" aria-hidden /> Bestellung wiederholen
+        </button>
 
         {/* R39: Rechnung-Demo */}
         <button

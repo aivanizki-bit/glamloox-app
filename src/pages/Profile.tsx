@@ -19,7 +19,7 @@ import { TopBar, Avatar, ProgressBar, BellButton } from '../components/ui';
 import { events } from '../data/events';
 
 export default function Profile() {
-  const { orders, favorites, enrolled, certificates, eventRegs, courseProgress, rewardPoints, savedPosts, allPosts } = useApp();
+  const { orders, favorites, enrolled, certificates, eventRegs, courseProgress, rewardPoints, savedPosts, allPosts, lessonNotes, profile, toast } = useApp();
   const activeCourse = courses.find((c) => c.id === 'korean-powder-2')!;
   const prog = courseProgress(activeCourse.id);
   const nextEvents = events.filter((e) => eventRegs.includes(e.id));
@@ -45,11 +45,11 @@ export default function Profile() {
           <Avatar name={demoUser.name} gradient={demoUser.gradient} size={68} ring />
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-[20px] font-extrabold tracking-tight text-white">
-              {demoUser.name}
+              {profile.name}
             </h2>
             <p className="truncate text-[12.5px] text-royal-100/80">{demoUser.role}</p>
             <p className="mt-1 flex items-center gap-1 text-[11.5px] text-royal-100/60">
-              <MapPin className="h-3 w-3" aria-hidden /> {demoUser.studio} · {demoUser.city}
+              <MapPin className="h-3 w-3" aria-hidden /> {profile.studio} · {demoUser.city}
             </p>
           </div>
         </div>
@@ -113,6 +113,39 @@ export default function Profile() {
         ))}
       </div>
 
+      {/* R41: Abzeichen-Vorschau */}
+      <div className="mx-4 mt-3 flex items-center justify-between rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card">
+        <div className="flex -space-x-2">
+          {['🏆', '🎓', '💬', '🥇'].map((e) => (
+            <span key={e} className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-gold-400 to-gold-500 text-[14px] shadow-card">
+              {e}
+            </span>
+          ))}
+        </div>
+        <Link to="/profile/rewards" className="tap text-[12.5px] font-bold text-royal-700">
+          Alle ansehen →
+        </Link>
+      </div>
+
+      {/* R50: Notizen-Export */}
+      <button
+        onClick={async () => {
+          const notes = Object.entries(lessonNotes);
+          const text = notes.map(([k, v]) => '• ' + k + ': ' + v).join('\n') || 'Noch keine Notizen';
+          try { await navigator.clipboard.writeText('Meine Academy-Notizen:\n' + text); } catch { /* Demo */ }
+          toast('Notizen kopiert (' + notes.length + ')', 'star');
+        }}
+        className="tap mx-4 mt-3 flex w-[calc(100%-32px)] items-center gap-3 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-royal-50 text-royal-600">
+          ✏️
+        </span>
+        <span className="min-w-0 flex-1 text-left">
+          <span className="block text-[13.5px] font-bold text-deep-900">Academy-Notizen exportieren</span>
+          <span className="block text-[11.5px] text-slate-400">{Object.keys(lessonNotes).length} Notizen · kopiert in Zwischenablage</span>
+        </span>
+      </button>
+
       {/* R37: Studio-Card */}
       <Link
         to="/community/member/m-lena"
@@ -123,7 +156,7 @@ export default function Profile() {
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[14px] font-bold text-deep-900">{demoUser.studio}</span>
-          <span className="block text-[11.5px] text-slate-400">{demoUser.city} · Di–Sa 9–18 Uhr (Demo)</span>
+          <span className="block text-[11.5px] text-slate-400">{profile.city} · Di–Sa 9–18 Uhr (Demo)</span>
         </span>
         <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" aria-hidden />
       </Link>

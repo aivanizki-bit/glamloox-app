@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Bookmark, PenSquare, Search, X } from 'lucide-react';
 import { memberById, members, type Post } from '../data/community';
+import { Flag } from 'lucide-react';
 import { demoUser } from '../data/user';
 import { useApp } from '../store/AppStore';
 import { TopBar, Chip, SmartImage, Avatar, EmptyState, BellButton } from '../components/ui';
@@ -155,15 +156,24 @@ export function PostCard({ post }: { post: Post }) {
           {post.comments.length + myComments.length}
         </Link>
         <button
-          onClick={() => toggleSave(post.id)}
+          onClick={() => {
+            toggleSave(post.id);
+          }}
           aria-label={saved ? 'Nicht mehr speichern' : 'Beitrag speichern'}
-          className="tap ml-auto flex items-center gap-1.5 text-[12.5px] font-semibold text-slate-500"
+          className="tap flex items-center gap-1.5 text-[12.5px] font-semibold text-slate-500"
         >
           <Bookmark
             className={`h-[19px] w-[19px] ${saved ? 'fill-deep-900 text-deep-900' : 'text-slate-400'}`}
             aria-hidden
           />
           {saved ? 'Gespeichert' : 'Speichern'}
+        </button>
+        <button
+          onClick={() => toast('Demo: Beitrag gemeldet – Moderation würde prüfen', 'info')}
+          aria-label="Beitrag melden"
+          className="tap ml-auto flex items-center gap-1.5 text-[12.5px] font-semibold text-slate-400"
+        >
+          <Flag className="h-[17px] w-[17px]" aria-hidden />
         </button>
       </div>
     </article>
@@ -275,6 +285,20 @@ export default function Community() {
           </span>
         </Link>
       </div>
+
+      {/* R33: Top-Autorin der Woche */}
+      <section className="px-4 pt-4">
+        <div className="flex items-center gap-3.5 rounded-2xl border border-gold-400/40 bg-gradient-to-r from-amber-50 to-white p-3.5 shadow-card">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gold-400 to-gold-500 text-[18px]">🏆</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10.5px] font-bold uppercase tracking-wide text-gold-500">Top-Autorin der Woche</p>
+            <p className="truncate text-[14px] font-bold text-deep-900">Lena Meier (du) · 3 Beiträge</p>
+          </div>
+          <Link to="/community/new" className="tap shrink-0 rounded-full bg-deep-900 px-3.5 py-2 text-[11.5px] font-bold text-white">
+            Nachlegen
+          </Link>
+        </div>
+      </section>
 
       {/* Aktive Profis */}
       <section className="px-4 pt-4">

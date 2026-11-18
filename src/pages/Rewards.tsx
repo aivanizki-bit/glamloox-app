@@ -12,7 +12,7 @@ const perks = [
 ];
 
 export default function Rewards() {
-  const { rewardPoints, orders, enrolled, favorites, userPosts, pointsLog } = useApp();
+  const { rewardPoints, orders, enrolled, favorites, userPosts, pointsLog, redeemPerk } = useApp();
   const [displayPts, setDisplayPts] = useState(0);
 
   useEffect(() => {
@@ -113,6 +113,21 @@ export default function Rewards() {
             </div>
           );
         })}
+      </div>
+
+      {/* R43: Nächste Belohnung */}
+      <div className="mx-4 mt-4 flex items-center justify-between gap-3 rounded-2xl border border-royal-100 bg-royal-50 p-3.5 shadow-card">
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-royal-600">Nächste Belohnung</p>
+          <p className="text-[13.5px] font-bold text-deep-900">Profi-Badge in der Community</p>
+          <p className="text-[11.5px] text-slate-500">{Math.max(0, 600 - rewardPoints)} Punkte bis Level 600</p>
+        </div>
+        <button
+          onClick={() => redeemPerk('5 % Bonus-Monat', 300)}
+          className="tap shrink-0 rounded-full bg-deep-900 px-4 py-2.5 text-center text-[12px] font-bold leading-tight text-white shadow-card"
+        >
+          5 %-Bonus<br />für 300 P.
+        </button>
       </div>
 
       {/* R40: Punkteverlauf */}

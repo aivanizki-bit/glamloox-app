@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { Component, useEffect, useRef, type ReactNode } from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AppProvider } from './store/AppStore';
 import { PhoneShell } from './components/PhoneShell';
@@ -30,11 +30,21 @@ import MyEvents from './pages/MyEvents';
 import Rewards from './pages/Rewards';
 import Settings from './pages/Settings';
 
+/** R70: Scroll-Positionen pro Route merken und wiederherstellen. */
+const scrollMap = new Map<string, number>();
+
 function ScrollContainer() {
   const ref = useRef<HTMLElement>(null);
   const location = useLocation();
   useEffect(() => {
-    ref.current?.scrollTo({ top: 0 });
+    const el = ref.current;
+    if (!el) return;
+    const onScroll = () => scrollMap.set(location.pathname, el.scrollTop);
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [location.pathname]);
+  useEffect(() => {
+    ref.current?.scrollTo({ top: scrollMap.get(location.pathname) ?? 0 });
   }, [location.pathname]);
   return (
     <main ref={ref} className="app-scroll relative flex-1 bg-mist-50">
@@ -83,8 +93,39 @@ function OfflineListener() {
   return null;
 }
 
+/** R91: Freundliche Error-Boundary für die Demo. */
+class ErrorBoundary extends Component<{ children: ReactNode }, { err: boolean }> {
+  state = { err: false };
+  static getDerivedStateFromError() {
+    return { err: true };
+  }
+  componentDidCatch() {
+    /* Demo: keine externen Logs */
+  }
+  render() {
+    if (this.state.err) {
+      return (
+        <div style={{ padding: 32, textAlign: 'center', fontFamily: 'system-ui' }}>
+          <p style={{ fontSize: 20, fontWeight: 800 }}>Ups – hier hat etwas gehakt 💙</p>
+          <p style={{ fontSize: 14, color: '#64748b', marginTop: 8 }}>
+            Die Demo läuft weiter – bitte Seite neu laden.
+          </p>
+          <button
+            onClick={() => location.reload()}
+            style={{ marginTop: 16, padding: '10px 24px', borderRadius: 999, background: '#0A1E5A', color: '#fff', border: 'none', fontWeight: 700 }}
+          >
+            Neu laden
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   return (
+    <ErrorBoundary>
     <AppProvider>
       <OfflineListener />
       <HashRouter>
@@ -94,5 +135,6 @@ export default function App() {
         </PhoneShell>
       </HashRouter>
     </AppProvider>
+    </ErrorBoundary>
   );
 }

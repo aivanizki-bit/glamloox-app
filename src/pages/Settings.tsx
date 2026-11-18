@@ -16,7 +16,7 @@ import { TopBar } from '../components/ui';
 import { MessageSquareHeart } from 'lucide-react';
 
 export default function Settings() {
-  const { settings, updateSettings, resetDemo, allPosts, likedPosts, savedPosts, openFeedback } = useApp();
+  const { settings, updateSettings, resetDemo, allPosts, likedPosts, savedPosts, openFeedback, profile, updateProfile } = useApp();
 
   const Toggle = ({
     on,
@@ -94,6 +94,53 @@ export default function Settings() {
               <span className="block text-[11.5px] text-slate-400">Hell · passend zum Brand-Design</span>
             </span>
             <span className="rounded-full bg-mist-100 px-2.5 py-1 text-[10.5px] font-bold text-slate-500">Demo</span>
+          </div>
+        </div>
+
+        {/* R48: Profil bearbeiten */}
+        <div className="overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-card">
+          <p className="border-b border-mist-200 bg-mist-50 px-4 py-2.5 text-[12px] font-bold uppercase tracking-wide text-slate-400">
+            Profil (Demo)
+          </p>
+          {(
+            [
+              ['name', 'Name', profile.name],
+              ['studio', 'Studio', profile.studio],
+              ['city', 'Stadt', profile.city],
+            ] as const
+          ).map(([field, label, value]) => (
+            <label key={field} className="flex items-center gap-3 border-b border-mist-100 px-4 py-3 last:border-0">
+              <span className="w-14 shrink-0 text-[12px] font-semibold text-slate-400">{label}</span>
+              <input
+                defaultValue={value}
+                onBlur={(e) => {
+                  const v = e.target.value.trim();
+                  if (v && v !== value) updateProfile({ [field]: v });
+                }}
+                aria-label={`Demo-${label} ändern`}
+                className="w-full bg-transparent text-[13.5px] font-semibold text-deep-950 outline-none"
+              />
+            </label>
+          ))}
+          <p className="px-4 pb-3 pt-1 text-[10px] text-slate-400">Änderungen werden lokal gespeichert (Demo-Konto).</p>
+        </div>
+
+        {/* R49: Changelog */}
+        <div className="overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-card">
+          <p className="border-b border-mist-200 bg-mist-50 px-4 py-2.5 text-[12px] font-bold uppercase tracking-wide text-slate-400">
+            Neuerungen im Prototyp
+          </p>
+          <div className="space-y-2 px-4 py-3.5">
+            {[
+              ['2.0', 'Globale Suche, Undo, Quiz-Feedback, ICS-Kalender, Profil-Editor & 100+ Verbesserungen'], ['1.9', 'Event-Countdown, Lernstreak, Notizen, globale Suche, Konfetti & mehr'],
+              ['1.1', 'Hero-Slider, Rabattcodes, Achievements, Adresswahl'],
+              ['1.0', 'Erste Version: Shop, Academy, Community, Profil'],
+            ].map(([v, d]) => (
+              <div key={v} className="flex gap-2.5">
+                <span className="shrink-0 rounded-full bg-royal-50 px-2 py-0.5 text-[10px] font-bold text-royal-700">v{v}</span>
+                <p className="text-[11.5px] leading-relaxed text-slate-500">{d}</p>
+              </div>
+            ))}
           </div>
         </div>
 

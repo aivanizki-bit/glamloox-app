@@ -5,6 +5,7 @@ const CDN = 'https://cdn.shopify.com/s/files/1/0639/5812/2716/files/';
 
 export interface LiveEvent {
   id: string;
+  faq?: { q: string; a: string }[];
   title: string;
   subtitle: string;
   dateISO: string; // Demo-Termin
@@ -42,6 +43,11 @@ export const events: LiveEvent[] = [
       { time: '19:25', point: 'Technik live demonstriert' },
       { time: '20:00', point: 'Produkte & Pad-Auswahl' },
       { time: '20:20', point: 'Offene Q&A-Runde' },
+    ],
+    faq: [
+      { q: 'Bekomme ich eine Aufzeichnung?', a: 'Ja – die Aufzeichnung geht nach dem Webinar an alle Teilnehmerinnen per E-Mail.' },
+      { q: 'Brauche ich Vorwissen?', a: 'Nein, das Webinar ist als Einstieg konzipiert. Grundlagen werden live erklärt.' },
+      { q: 'Kann ich Fragen stellen?', a: 'Absolut – am Ende gibt es eine offene Q&A-Runde von ca. 10 Minuten.' },
     ],
     realBasis: 'Format & Preis entsprechen dem realen Webinar-Angebot von glamloox.net. Termin ist ein Demo-Datum.',
   },
@@ -115,12 +121,81 @@ export const events: LiveEvent[] = [
     ],
     realBasis: 'Demo-Event zur Präsentation der Community-Funktionen.',
   },
+  {
+    id: 'ev-brow-lifting-live',
+    title: 'Brow Lifting – Live-Training',
+    subtitle: 'Praxis-Workshop mit Modell',
+    dateISO: '2026-12-09',
+    time: '15:00 – 18:00 Uhr',
+    location: 'Online (Link per E-Mail)',
+    online: true,
+    price: 89,
+    priceNote: 'Demo-Preis',
+    seats: 'Noch 9 von 25 Plätzen',
+    host: 'Brow Atelier Jules × GLAMLOOX',
+    image: CDN + 'ZOLA_Silver_Lotionen_Set_Lifting.jpg?width=1200',
+    description:
+      'Drei Stunden geballtes Brow-Wissen: Lifting-Technik, Farbwahl und Styling-Abchluss – live an einem Modell mit Nahaufnahmen. Ideal für Lash Artists, die Brows als zweites Standbein aufbauen wollen.',
+    agenda: [
+      { time: '15:00', point: 'Begrüßung & Material-Übersicht' },
+      { time: '15:30', point: 'Live-Demo: komplettes Brow Lifting' },
+      { time: '16:30', point: 'Farbwahl & Tint-Technik' },
+      { time: '17:15', point: 'Styling-Abchluss & Aftercare' },
+    ],
+    faq: [
+      { q: 'Welche Produkte brauche ich?', a: 'Eine Materialliste senden wir vorab – alles ist im Shop erhältlich.' },
+      { q: 'Ist das Training zertifiziert?', a: 'Du erhältst eine Teilnahmebestätigung der GLAMLOOX Academy.' },
+    ],
+    realBasis: 'Demo-Event zur Präsentation der Event-Funktionen.',
+  },
+  {
+    id: 'ev-qa-stunde',
+    title: 'Offene Q&A Stunde',
+    subtitle: 'Bring deine Fragen mit – kostenlos',
+    dateISO: '2026-12-16',
+    time: '18:00 – 19:00 Uhr',
+    location: 'Online (Link per E-Mail)',
+    online: true,
+    price: 0,
+    priceNote: 'Kostenlos für alle Mitglieder',
+    seats: 'Noch 54 von 100 Plätzen',
+    host: 'GLAMLOOX Academy Team',
+    image: CDN + 'bilder_vorbereitung.png?width=1200',
+    description:
+      'Eine Stunde, ein Ziel: Deine Fragen beantworten. Technik, Produkte, Studio-Business – nichts ist zu klein. Gerne sendest du deine Frage auch vorab an die Community.',
+    agenda: [
+      { time: '18:00', point: 'Warm-up: Ergebnisse der Community' },
+      { time: '18:10', point: 'Q&A-Runde mit dem Team' },
+      { time: '18:50', point: 'Ausblick auf kommende Termine' },
+    ],
+    realBasis: 'Demo-Event zur Präsentation der Community-Funktionen.',
+  },
+  {
+    id: 'ev-meetup-köln-v1',
+    title: 'Community Meet-up Köln (Archiv)',
+    subtitle: 'Vergangenes Event – mit Recap-Fotos',
+    dateISO: '2026-10-05',
+    time: '14:00 – 17:00 Uhr',
+    location: 'Köln',
+    online: false,
+    price: 0,
+    priceNote: 'Archiv-Eintrag (Demo)',
+    seats: '40 Plätze – ausgebucht',
+    host: 'GLAMLOOX Community',
+    image: CDN + 'Haarband_Glamloox1.png?width=1200',
+    description:
+      'Unser erstes Meet-up im Oktober: 40 Profis, zwei Demo-Stationen und viele neue Freundschaften. Recap-Fotos folgen – das nächste Meet-up findet im Dezember statt.',
+    agenda: [{ time: '14:00', point: 'Begrüßung & Networking' }],
+    realBasis: 'Archiv-Demo-Eintrag.',
+  },
 ];
 
 export const formatDate = (iso: string): string => {
   const d = new Date(iso + 'T12:00:00');
   return d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 };
+export const isPastEvent = (iso: string): boolean => new Date(iso + 'T23:59').getTime() < Date.now();
+
 export const formatDateShort = (iso: string): string => {
   const d = new Date(iso + 'T12:00:00');
   return d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });

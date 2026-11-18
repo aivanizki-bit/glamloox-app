@@ -30,6 +30,10 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1);
 
   useEffect(() => {
+    const track = document.querySelector('.snap-x');
+    if (track) track.scrollTo({ left: imgIdx * (track as HTMLElement).clientWidth, behavior: 'smooth' });
+  }, [imgIdx]);
+  useEffect(() => {
     if (product) pushRecentlyViewed(product.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product?.id]);
@@ -129,6 +133,20 @@ export default function ProductDetail() {
           <span className="text-[12px] font-medium text-slate-400">inkl. MwSt.</span>
         </div>
 
+        {/* R1-2: Verfügbarkeit + Artikelnummer */}
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="flex items-center gap-1.5 text-[12px] font-bold text-emerald-600">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden /> Auf Lager
+          </span>
+          <span className="text-[11px] text-slate-400">Art.-Nr. GLX-{product.id.toUpperCase().slice(0, 8)}</span>
+        </div>
+
+        {/* R3: Patch-Test-Hinweis */}
+        <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3.5 py-2.5 text-[11.5px] leading-relaxed text-amber-800">
+          <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+          Profi-Hinweis: Hautverträglichkeit vor jeder Anwendung mit Patch-Test prüfen (24 Std.).
+        </p>
+
         <p className="mt-3 rounded-2xl bg-mist-100 p-3.5 text-[13.5px] leading-relaxed text-slate-600">
           {product.blurb}
         </p>
@@ -175,7 +193,13 @@ export default function ProductDetail() {
               {product.variants.map((v) => (
                 <button
                   key={v.id}
-                  onClick={() => setVariant(v.id)}
+                  onClick={() => {
+                    setVariant(v.id);
+                    if (product.id === 'oko-undereye-pads') {
+                      const imgIdx = product.images.findIndex((src) => src.toLowerCase().includes(v.id === 'v1' ? 'pink' : 'black'));
+                      if (imgIdx >= 0) setImgIdx(imgIdx);
+                    }
+                  }}
                   className={`tap rounded-xl border px-4 py-2.5 text-[13.5px] font-semibold ${
                     variant === v.id
                       ? 'border-royal-600 bg-royal-50 text-royal-700'

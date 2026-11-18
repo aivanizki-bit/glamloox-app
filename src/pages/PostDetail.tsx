@@ -218,14 +218,28 @@ export default function PostDetail() {
         {/* Eingabe */}
         <div className="flex items-center gap-2.5 border-t border-mist-200 p-3">
           <Avatar name={demoUser.name} gradient={demoUser.gradient} size={34} />
-          <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && submit()}
-            placeholder="Kommentieren…"
-            aria-label="Neuer Kommentar"
-            className="h-10 flex-1 rounded-full border border-mist-200 bg-mist-50 px-4 text-[13.5px] font-medium text-deep-950 outline-none focus:border-royal-400"
-          />
+          <div className="flex flex-1 items-center gap-1.5">
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && submit()}
+              placeholder="Kommentieren…"
+              aria-label="Neuer Kommentar"
+              className="h-10 min-w-0 flex-1 rounded-full border border-mist-200 bg-mist-50 px-4 text-[13.5px] font-medium text-deep-950 outline-none focus:border-royal-400"
+            />
+            <div className="flex shrink-0 gap-0.5">
+              {['💙', '🔥', '😍', '👏'].map((em) => (
+                <button
+                  key={em}
+                  onClick={() => setDraft((d) => d + em)}
+                  aria-label={`Emoji ${em} einfügen`}
+                  className="tap flex h-8 w-8 items-center justify-center rounded-full text-[15px] active:bg-mist-100"
+                >
+                  {em}
+                </button>
+              ))}
+            </div>
+          </div>
           <button
             onClick={submit}
             disabled={!draft.trim()}

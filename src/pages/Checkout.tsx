@@ -11,6 +11,8 @@ export default function Checkout() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [pay, setPay] = useState<'paypal' | 'klarna' | 'card'>('paypal');
+  const [terms, setTerms] = useState(false);
+  const [saveDefault, setSaveDefault] = useState(true);
   const [addr, setAddr] = useState<'home' | 'studio'>('home');
   const [gift, setGift] = useState('');
   const [placing, setPlacing] = useState(false);
@@ -66,7 +68,12 @@ export default function Checkout() {
       {/* Fortschritt */}
       <div className="flex items-center justify-center gap-2 px-4 pb-1 pt-4">
         {steps.map((s, i) => (
-          <div key={s} className="flex items-center gap-2">
+          <button
+            key={s}
+            onClick={() => i < step && setStep(i)}
+            aria-label={i < step ? `Zu Schritt ${s} zurückkehren` : undefined}
+            className={`flex items-center gap-2 ${i < step ? 'tap' : 'cursor-default'}`}
+          >
             <span
               className={`flex h-6 w-6 items-center justify-center rounded-full text-[11.5px] font-bold ${
                 i < step
@@ -84,7 +91,7 @@ export default function Checkout() {
               {s}
             </span>
             {i < steps.length - 1 && <span className="h-px w-5 bg-mist-200" aria-hidden />}
-          </div>
+          </button>
         ))}
       </div>
 
@@ -120,6 +127,18 @@ export default function Checkout() {
                     </span>
                   </button>
                 ))}
+                <button
+                  onClick={() => setSaveDefault((v) => !v)}
+                  className="tap flex w-full items-center gap-2.5 rounded-xl bg-mist-50 px-3.5 py-2.5 text-left"
+                  aria-pressed={saveDefault}
+                >
+                  <span
+                    className={`relative h-[22px] w-[40px] shrink-0 rounded-full transition-colors ${saveDefault ? 'bg-royal-600' : 'bg-mist-200'}`}
+                  >
+                    <span className={`absolute top-[3px] h-4 w-4 rounded-full bg-white shadow transition-all ${saveDefault ? 'left-[21px]' : 'left-[3px]'}`} />
+                  </span>
+                  <span className="text-[12.5px] font-semibold text-deep-900">Als Standard-Adresse speichern (Demo)</span>
+                </button>
                 <div className="rounded-xl border border-mist-200 bg-white p-3">
                   <p className="text-[12.5px] font-bold text-deep-900">Geschenknachricht (optional)</p>
                   <textarea
@@ -259,6 +278,20 @@ export default function Checkout() {
               </div>
             </div>
 
+            <button
+              onClick={() => setTerms((v) => !v)}
+              aria-pressed={terms}
+              className="tap flex items-start gap-2.5 px-1 py-1 text-left"
+            >
+              <span
+                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 ${terms ? 'border-royal-600 bg-royal-600' : 'border-slate-300 bg-white'}`}
+              >
+                {terms && <span className="text-[10px] font-extrabold text-white">✓</span>}
+              </span>
+              <span className="text-[11.5px] leading-relaxed text-slate-500">
+                Ich akzeptiere AGB &amp; Datenschutzhinweise der Demo (kein echter Rechtstext).
+              </span>
+            </button>
             {placing ? (
               <div className="flex h-[52px] items-center justify-center gap-3 rounded-2xl bg-deep-900 text-white">
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-royal-300 border-t-transparent" />

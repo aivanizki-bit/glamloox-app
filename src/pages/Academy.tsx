@@ -1,14 +1,15 @@
 import { useState } from 'react';
+import { Heart } from 'lucide-react';
 import { Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { GraduationCap, Radio, PlayCircle, Clock, Users, ArrowRight, Award, CalendarDays } from 'lucide-react';
 import { courses } from '../data/courses';
-import { events, formatDate, formatDateShort } from '../data/events';
+import { events, formatDate, formatDateShort, isPastEvent } from '../data/events';
 import { useApp, eur } from '../store/AppStore';
 import { TopBar, SmartImage, SectionHeader, ProgressBar, Chip } from '../components/ui';
 
 export default function Academy() {
-  const { enrolled, courseProgress } = useApp();
+  const { enrolled, courseProgress, favoriteCourses, toggleCourseFav } = useApp();
   const [level, setLevel] = useState<'alle' | 'Einsteiger' | 'Fortgeschritten' | 'Profi'>('alle');
   const [q, setQ] = useState('');
   const shownCourses = courses
@@ -107,6 +108,22 @@ export default function Academy() {
         </section>
       )}
 
+      {/* R17: Lernstreak */}
+      <section className="px-4 pt-3">
+        <div className="flex items-center gap-3.5 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-card">
+            🔥
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[13.5px] font-bold text-deep-900">Lernstreak: 4 Tage</p>
+            <p className="text-[11.5px] text-slate-400">Jeden Tag 10 Minuten – du bist auf Kurs! (Demo-Streak)</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-royal-50 px-3 py-1.5 text-[11.5px] font-bold text-royal-700">
+            {enrolled.length} Kurse
+          </span>
+        </div>
+      </section>
+
       {/* Kurse */}
       <section id="kurse" className="scroll-mt-20 pt-6">
         <SectionHeader title="Videokurse" sub="Zertifizierte Online-Ausbildungen" />
@@ -143,6 +160,20 @@ export default function Academy() {
                     Einschreibung aktiv
                   </span>
                 )}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleCourseFav(c.id);
+                  }}
+                  aria-label={`${c.title} merken`}
+                  className="tap absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-card backdrop-blur"
+                >
+                  <Heart
+                    className={`h-[18px] w-[18px] ${favoriteCourses.includes(c.id) ? 'anim-pop fill-royal-600 text-royal-600' : 'text-slate-400'}`}
+                    aria-hidden
+                  />
+                </button>
                 <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-deep-950/80 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">
                   <PlayCircle className="h-3.5 w-3.5" aria-hidden />
                   {c.hours} Std.
@@ -181,7 +212,7 @@ export default function Academy() {
       <section id="live" className="scroll-mt-20 pt-7">
         <SectionHeader title="Live & vor Ort" sub="Webinare, Masterclasses, Meet-ups" />
         <div className="space-y-3 px-4">
-          {events.map((e) => (
+          {[...events].filter((e) => !isPastEvent(e.dateISO)).sort((a, b) => a.dateISO.localeCompare(b.dateISO)).map((e) => (
             <Link
               key={e.id}
               to={`/academy/event/${e.id}`}
@@ -209,6 +240,32 @@ export default function Academy() {
           ))}
         </div>
       </section>
+
+        {/* R56: Archiv */}
+        {[...events].filter((e) => isPastEvent(e.dateISO)).length > 0 && (
+          <div className="px-4 pt-4">
+            <p className="pb-2 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">Archiv</p>
+            {[...events].filter((e) => isPastEvent(e.dateISO)).map((e) => (
+              <Link
+                key={e.id}
+                to={'/academy/event/' + e.id}
+                className="tap mb-2.5 flex items-center gap-3 rounded-2xl border border-mist-200 bg-white/60 p-3 opacity-80"
+              >
+                <div className="flex h-[58px] w-[52px] shrink-0 flex-col items-center justify-center rounded-xl bg-mist-200 text-slate-500">
+                  <span className="text-[9.5px] font-bold uppercase tracking-wide opacity-80">
+                    {new Date(e.dateISO + 'T12:00').toLocaleDateString('de-DE', { month: 'short' })}
+                  </span>
+                  <span className="text-[19px] font-extrabold leading-none">{e.dateISO.slice(-2)}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-1 text-[14px] font-bold text-slate-600">{e.title}</p>
+                  <p className="text-[11.5px] text-slate-400">Archiv · Recap-Fotos folgen</p>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-slate-300" aria-hidden />
+              </Link>
+            ))}
+          </div>
+        )}
 
       {/* Zertifikats-Teaser */}
       <section className="px-4 pt-7">
