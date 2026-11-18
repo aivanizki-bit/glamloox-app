@@ -1,18 +1,45 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useApp } from '../store/AppStore';
+import { SendHorizontal } from 'lucide-react';
 import { Toasts } from './ui';
 import { NotificationsSheet } from './Notifications';
 import { Splash, OfflineBanner, FeedbackSheet, SearchOverlay } from './GlobalOverlays';
+import { TourOverlay } from './TourOverlay';
 
 /**
  * Desktop-Präsentation: zentriertes „iPhone“ mit hochwertigem Hintergrund.
  * Auf Smartphones füllt die App den ganzen Bildschirm.
  */
+/** Кнопка «Ссылку отправить» на десктоп-панели. */
+function ShareDemoButton() {
+  const { toast } = useApp();
+  return (
+    <button
+      onClick={async () => {
+        try { await navigator.clipboard.writeText('https://glamloox-app.vercel.app'); } catch { /* Demo */ }
+        toast('Демо-ссылка скопирована 💙', 'star');
+      }}
+      className="tap mt-6 flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[13px] font-bold text-deep-900 shadow-card"
+    >
+      <SendHorizontal className="h-4 w-4 text-royal-600" aria-hidden />
+      Ссылку для клиента скопировать
+    </button>
+  );
+}
+
 /** R68: Escape schließt alle Overlays. */
 function EscapeHandler() {
-  const { notifOpen, feedbackOpen, searchOpen, closeNotifs, closeFeedback, closeSearch, lightboxClose } = useApp();
+  const { notifOpen, feedbackOpen, searchOpen, closeNotifs, closeFeedback, closeSearch, lightboxClose, openSearch } = useApp();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === '/' && !searchOpen) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+          e.preventDefault();
+          openSearch();
+          return;
+        }
+      }
       if (e.key !== 'Escape') return;
       if (searchOpen) closeSearch();
       else if (feedbackOpen) closeFeedback();
@@ -21,7 +48,7 @@ function EscapeHandler() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [notifOpen, feedbackOpen, searchOpen, closeNotifs, closeFeedback, closeSearch, lightboxClose]);
+  }, [notifOpen, feedbackOpen, searchOpen, closeNotifs, closeFeedback, closeSearch, openSearch, lightboxClose]);
   return null;
 }
 
@@ -41,6 +68,7 @@ export function PhoneShell({ children }: { children: ReactNode }) {
         <Toasts />
         <FeedbackSheet />
         <SearchOverlay />
+        <TourOverlay />
         <Splash />
         <NotificationsSheet />
       </div>
@@ -98,6 +126,7 @@ export function PhoneShell({ children }: { children: ReactNode }) {
             </span>
           ))}
         </div>
+        <ShareDemoButton />
       </div>
 
       {/* iPhone-Frame */}
@@ -123,6 +152,7 @@ export function PhoneShell({ children }: { children: ReactNode }) {
             <Toasts />
         <FeedbackSheet />
         <SearchOverlay />
+        <TourOverlay />
         <Splash />
         <NotificationsSheet />
           </div>

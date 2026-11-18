@@ -512,6 +512,21 @@ export default function Home() {
         </div>
       </section>
 
+      {/* О бренде */}
+      <section className="pt-7">
+        <div className="mx-4 text-center">
+          <p className="text-[22px] font-extrabold tracking-tight text-deep-950">
+            GLAM<span className="text-royal-600">LOOX</span>
+            <span className="ml-0.5 align-super text-[9px] font-bold text-royal-500">®</span>
+          </p>
+          <p className="mt-1 text-[12.5px] font-semibold text-slate-500">Natürlich. Sicher. Einfach du.</p>
+          <p className="mx-auto mt-2 max-w-[300px] text-[12px] leading-relaxed text-slate-400">
+            Профессиональный уход за ресницами и бровями без гормонов —
+            разработано для студий и ценителей. С любовью из Германии 💙
+          </p>
+        </div>
+      </section>
+
       {/* R60: Warum GLAMLOOX */}
       <section className="pt-7">
         <div className="mx-4 rounded-3xl border border-royal-100 bg-white p-4 shadow-card">

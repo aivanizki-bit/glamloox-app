@@ -117,6 +117,7 @@ const DEFAULT_STATE: PersistedState = {
 };
 
 const KEY = 'glamloox-demo-v1';
+export const APP_VERSION = '2.0';
 
 function load(): PersistedState {
   try {
@@ -159,6 +160,9 @@ export interface AppState extends PersistedState {
   openSearch: () => void;
   closeSearch: () => void;
   lightboxClose: () => void;
+  tourOpen: boolean;
+  openTour: () => void;
+  closeTour: () => void;
   dismissPushHint: () => void;
   setOffline: (v: boolean) => void;
   offline: boolean;
@@ -208,6 +212,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+  useEffect(() => {
+    const last = localStorage.getItem('glx-last-version');
+    if (last && last !== APP_VERSION) {
+      setTimeout(() => {
+        setToasts((t) => [
+          ...t,
+          {
+            id: toastId.current++,
+            msg: 'Обновлено до v' + APP_VERSION + ' – новинки в настройках',
+            icon: 'star' as const,
+          },
+        ]);
+      }, 2200);
+    }
+    localStorage.setItem('glx-last-version', APP_VERSION);
+  }, []);
   const toastId = useRef(1);
 
   useEffect(() => {
@@ -488,6 +508,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const lightboxClose = useCallback(() => {
     (document.querySelector('button[aria-label="Zoom schließen"]') as HTMLElement | null)?.click();
   }, []);
+  const [tourOpen, setTourOpen] = useState(false);
+  const openTour = useCallback(() => setTourOpen(true), []);
+  const closeTour = useCallback(() => setTourOpen(false), []);
   const [searchOpen, setSearchOpen] = useState(false);
   const openSearch = useCallback(() => setSearchOpen(true), []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
@@ -685,6 +708,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     openSearch,
     closeSearch,
     lightboxClose,
+    tourOpen,
+    openTour,
+    closeTour,
     dismissPushHint,
     setOffline,
     offline,

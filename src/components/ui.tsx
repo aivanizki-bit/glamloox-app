@@ -280,7 +280,7 @@ export function Toasts() {
   const { toasts, dismissToast } = useApp();
   const icons: Record<string, typeof Check> = { check: Check, heart: Heart, cart: ShoppingBag, info: Info, star: Star, undo: RotateCcw };
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-[92px] z-50 flex flex-col items-center gap-2 px-4">
+    <div aria-live="polite" className="pointer-events-none absolute inset-x-0 bottom-[92px] z-50 flex flex-col items-center gap-2 px-4">
       {toasts.map((t) => {
         const I = icons[t.icon ?? 'check'];
         return (

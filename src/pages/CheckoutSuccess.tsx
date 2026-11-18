@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { CheckCircle2, Package, GraduationCap, Home as HomeIcon, Share2, Timer } from 'lucide-react';
+import { CheckCircle2, Package, GraduationCap, Home as HomeIcon, Share2, Timer, ArrowRight as ArrowRight2 } from 'lucide-react';
 import { useApp, eur, productById } from '../store/AppStore';
 import { events, isPastEvent } from '../data/events';
 import { TopBar, SmartImage } from '../components/ui';
@@ -112,6 +112,25 @@ export default function CheckoutSuccess() {
           >
             <Share2 className="h-4 w-4" aria-hidden /> Bestellbestätigung teilen
           </button>
+
+          {/* Рекомендация курса */}
+          <Link
+            to="/academy/course/big-korean-webinar"
+            className="tap mt-1 flex items-center gap-3.5 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-royal-400 to-royal-600 text-white text-[20px]">
+              🎓
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[10.5px] font-bold uppercase tracking-wide text-royal-600">
+                От Academy
+              </span>
+              <span className="block truncate text-[13.5px] font-bold text-deep-900">
+                Korean Lift дома — освой технику за 19 €
+              </span>
+            </span>
+            <ArrowRight2 className="h-4 w-4 shrink-0 text-slate-300" aria-hidden />
+          </Link>
 
           {/* R15: Nächster Event-Teaser */}
           <Link

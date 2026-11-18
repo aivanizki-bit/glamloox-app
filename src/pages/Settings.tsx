@@ -13,10 +13,10 @@ import {
 } from 'lucide-react';
 import { useApp } from '../store/AppStore';
 import { TopBar } from '../components/ui';
-import { MessageSquareHeart } from 'lucide-react';
+import { MessageSquareHeart, Sparkles, SendHorizontal } from 'lucide-react';
 
 export default function Settings() {
-  const { settings, updateSettings, resetDemo, allPosts, likedPosts, savedPosts, openFeedback, profile, updateProfile } = useApp();
+  const { settings, updateSettings, resetDemo, allPosts, likedPosts, savedPosts, openFeedback, openTour, toast, profile, updateProfile } = useApp();
 
   const Toggle = ({
     on,
@@ -190,6 +190,37 @@ export default function Settings() {
               <span className="block text-[11.5px] text-slate-400">
                 Lokalen Browser-Speicher zurücksetzen
               </span>
+            </span>
+          </button>
+        </div>
+
+        {/* Презентация клиенту */}
+        <div className="overflow-hidden rounded-2xl border border-royal-100 bg-gradient-to-r from-royal-50 to-white shadow-card">
+          <button
+            onClick={openTour}
+            className="tap flex w-full items-center gap-3.5 border-b border-royal-100 px-4 py-3.5 text-left"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-royal-600 text-white">
+              <Sparkles className="h-[18px] w-[18px]" aria-hidden />
+            </span>
+            <span className="flex-1">
+              <span className="block text-[14px] font-semibold text-deep-900">Тур по прототипу starten</span>
+              <span className="block text-[11.5px] text-slate-400">5 шагов: Shop · Academy · Community · Profil</span>
+            </span>
+          </button>
+          <button
+            onClick={async () => {
+              try { await navigator.clipboard.writeText('https://glamloox-app.vercel.app'); } catch { /* Demo */ }
+              toast('Демо-ссылка скопирована — можно отправлять клиенту 💙', 'star');
+            }}
+            className="tap flex w-full items-center gap-3.5 px-4 py-3.5 text-left"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-deep-900 text-white">
+              <SendHorizontal className="h-[18px] w-[18px]" aria-hidden />
+            </span>
+            <span className="flex-1">
+              <span className="block text-[14px] font-semibold text-deep-900">Отправить ссылку клиенту</span>
+              <span className="block text-[11.5px] text-slate-400">glamloox-app.vercel.app копируется в буфер</span>
             </span>
           </button>
         </div>
