@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { products } from '../data/products';
 import { courses } from '../data/courses';
-import { events, formatDateShort } from '../data/events';
+import { events, formatDateShort, isPastEvent } from '../data/events';
 import { memberById, posts as seedPosts } from '../data/community';
 import { demoUser } from '../data/user';
 import { useApp, eur } from '../store/AppStore';
@@ -74,7 +74,8 @@ export default function Home() {
   const inProgress = courses.find((c) => c.id === 'korean-powder-2')!;
 
   // R1: nächstes Event + Countdown
-  const upcoming = [...events].sort((a, b) => a.dateISO.localeCompare(b.dateISO))[0];
+  const futureEvents = events.filter((e) => !isPastEvent(e.dateISO));
+  const upcoming = (futureEvents.length > 0 ? futureEvents : [...events].sort((a, b) => b.dateISO.localeCompare(a.dateISO)))[0];
   useEffect(() => {
     const el = document.querySelector('main');
     const onScroll = () => setShowTop((el?.scrollTop ?? 0) > 600);

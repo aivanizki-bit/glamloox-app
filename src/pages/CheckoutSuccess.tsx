@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { CheckCircle2, Package, GraduationCap, Home as HomeIcon, Share2, Timer } from 'lucide-react';
 import { useApp, eur, productById } from '../store/AppStore';
-import { events } from '../data/events';
+import { events, isPastEvent } from '../data/events';
 import { TopBar, SmartImage } from '../components/ui';
 
 export default function CheckoutSuccess() {
@@ -115,7 +115,7 @@ export default function CheckoutSuccess() {
 
           {/* R15: Nächster Event-Teaser */}
           <Link
-            to={`/academy/event/${[...events].sort((a, b) => a.dateISO.localeCompare(b.dateISO))[0].id}`}
+            to={`/academy/event/${(events.filter((e) => !isPastEvent(e.dateISO)).sort((a, b) => a.dateISO.localeCompare(b.dateISO))[0] ?? events[0]).id}`}
             className="tap mt-1 flex items-center gap-3 rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 to-white p-3.5 shadow-card"
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-500 text-white">
@@ -124,7 +124,7 @@ export default function CheckoutSuccess() {
             <span className="min-w-0 flex-1">
               <span className="block text-[12.5px] font-bold text-deep-900">Nächstes Live-Event</span>
               <span className="block truncate text-[11.5px] text-slate-500">
-                {[...events].sort((a, b) => a.dateISO.localeCompare(b.dateISO))[0].title}
+                {(events.filter((e) => !isPastEvent(e.dateISO)).sort((a, b) => a.dateISO.localeCompare(b.dateISO))[0] ?? events[0]).title}
               </span>
             </span>
             <span className="shrink-0 rounded-full bg-deep-900 px-3 py-1.5 text-[11px] font-bold text-white">Anmelden</span>
