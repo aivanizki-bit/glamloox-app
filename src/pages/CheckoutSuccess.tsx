@@ -9,10 +9,34 @@ export default function CheckoutSuccess() {
   const order = orders.find((o) => o.id === orderId) ?? orders[0];
 
   return (
-    <div className="anim-fade-in min-h-full bg-mist-50">
+    <div className="anim-fade-in relative min-h-full bg-mist-50">
       <TopBar title="Bestellung abgeschlossen" back="/shop" />
 
-      <div className="px-4 py-6">
+      {/* Konfetti (Demo) */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[420px] overflow-hidden" aria-hidden>
+        {Array.from({ length: 26 }).map((_, i) => {
+          const colors = ['#2E5BF0', '#7A96F8', '#C5D6FE', '#D9A83B', '#FFFFFF'];
+          const left = ((i * 61) % 96) + 2;
+          const delay = (i % 9) * 0.13;
+          const dur = 2.1 + (i % 5) * 0.35;
+          return (
+            <span
+              key={i}
+              className="confetti"
+              style={{
+                left: left + '%',
+                background: colors[i % colors.length],
+                animationDelay: delay + 's',
+                animationDuration: dur + 's',
+                width: i % 3 === 0 ? '6px' : '9px',
+                height: i % 4 === 0 ? '9px' : '13px',
+              }}
+            />
+          );
+        })}
+      </div>
+
+      <div className="relative px-4 py-6">
         <div className="anim-pop mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-royal-500 to-deep-900 shadow-float">
           <CheckCircle2 className="h-10 w-10 text-white" aria-hidden />
         </div>

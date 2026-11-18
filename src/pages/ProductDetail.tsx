@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   ChevronLeft,
+  ChevronDown,
   ChevronRight,
   Minus,
   Plus,
@@ -22,6 +23,7 @@ export default function ProductDetail() {
   const product = products.find((p) => p.id === productId);
   const { addToCart, toast, pushRecentlyViewed } = useApp();
   const [imgIdx, setImgIdx] = useState(0);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [variant, setVariant] = useState(product?.variants[0]?.id ?? 'std');
   const [qty, setQty] = useState(1);
 
@@ -120,6 +122,38 @@ export default function ProductDetail() {
         <p className="mt-3 rounded-2xl bg-mist-100 p-3.5 text-[13.5px] leading-relaxed text-slate-600">
           {product.blurb}
         </p>
+
+        {/* Details & Anwendung (Accordion) */}
+        <div className="mt-4 overflow-hidden rounded-2xl border border-mist-200">
+          <button
+            onClick={() => setDetailsOpen((v) => !v)}
+            className="tap flex w-full items-center justify-between bg-mist-50 px-4 py-3 text-left"
+            aria-expanded={detailsOpen}
+          >
+            <span className="text-[13.5px] font-bold text-deep-900">Details &amp; Anwendung</span>
+            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${detailsOpen ? 'rotate-180' : ''}`} aria-hidden />
+          </button>
+          {detailsOpen && (
+            <div className="anim-fade-in bg-white px-4 py-3.5">
+              <ul className="space-y-2">
+                {(
+                  {
+                    pflege: ['Abends 2× täglich auf die saubere Haut auftragen', 'Erste Ergebnisse nach 4–6 Wochen, volle Wirkung nach ca. 12', 'Ohne Hormone & Prostaglandine – vegan formuliert'],
+                    'lash-lifting': ['Profi-Qualität für Studio-Anwendungen', 'Einwirkzeiten stets laut Produkthanleitung', 'Kühl und trocken lagern, von Wärmequellen fernhalten'],
+                    brow: ['Farbintensität steuerst du über die Einwirkzeit', 'Patch-Test vor der ersten Anwendung empfohlen', 'Kühl und trocken lagern'],
+                    zubehoer: ['Perfekt für Studio & unterwegs', 'Leicht zu reinigen', 'Langlebige, hochwertige Materialien'],
+                  } as Record<string, string[]>
+                )[product.category].map((d) => (
+                  <li key={d} className="flex items-start gap-2 text-[12.5px] leading-relaxed text-slate-600">
+                    <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-royal-500" aria-hidden />
+                    {d}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2.5 text-[10px] text-slate-400">Demo-Inhalte für den Prototyp – Details je Produkt variieren.</p>
+            </div>
+          )}
+        </div>
 
         {/* Varianten */}
         {product.variants.length > 0 && (

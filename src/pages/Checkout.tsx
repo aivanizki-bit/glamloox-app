@@ -11,6 +11,8 @@ export default function Checkout() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [pay, setPay] = useState<'paypal' | 'klarna' | 'card'>('paypal');
+  const [addr, setAddr] = useState<'home' | 'studio'>('home');
+  const [gift, setGift] = useState('');
   const [placing, setPlacing] = useState(false);
 
   if (cart.length === 0) {
@@ -95,17 +97,42 @@ export default function Checkout() {
                 <MapPin className="h-4 w-4 text-royal-600" aria-hidden /> Lieferadresse
               </p>
               <div className="mt-3 space-y-2.5">
-                <div className="rounded-xl bg-mist-50 px-3.5 py-3">
-                  <p className="text-[10.5px] font-bold uppercase tracking-wide text-slate-400">
-                    Demo-Adresse
-                  </p>
-                  <p className="mt-0.5 text-[14px] font-semibold text-deep-950">Lena Meier</p>
-                  <p className="text-[13px] text-slate-500">Lash Lounge Lena · Belgianstraße 12</p>
-                  <p className="text-[13px] text-slate-500">50823 Köln</p>
+                {(
+                  [
+                    ['home', 'Zuhause', 'Lena Meier · Belgianstraße 12, 50823 Köln'],
+                    ['studio', 'Studio', 'Lash Lounge Lena · Friesenstraße 44, 50667 Köln'],
+                  ] as const
+                ).map(([id, label, line]) => (
+                  <button
+                    key={id}
+                    onClick={() => setAddr(id)}
+                    className={`tap flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left ${addr === id ? 'border-royal-600 bg-royal-50' : 'border-mist-200 bg-mist-50'}`}
+                    aria-pressed={addr === id}
+                  >
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${addr === id ? 'border-royal-600' : 'border-slate-300'}`}
+                    >
+                      {addr === id && <span className="h-2.5 w-2.5 rounded-full bg-royal-600" />}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13.5px] font-bold text-deep-900">{label}</span>
+                      <span className="block truncate text-[12px] text-slate-500">{line}</span>
+                    </span>
+                  </button>
+                ))}
+                <div className="rounded-xl border border-mist-200 bg-white p-3">
+                  <p className="text-[12.5px] font-bold text-deep-900">Geschenknachricht (optional)</p>
+                  <textarea
+                    value={gift}
+                    onChange={(e) => setGift(e.target.value)}
+                    rows={2}
+                    maxLength={120}
+                    placeholder="„Viel Erfolg mit dem Studio! 💙“"
+                    aria-label="Geschenknachricht"
+                    className="mt-2 w-full resize-none rounded-lg border border-mist-200 bg-mist-50 p-2.5 text-[12.5px] text-deep-950 outline-none placeholder:text-slate-400 focus:border-royal-400"
+                  />
+                  <p className="mt-1 text-right text-[10px] text-slate-400">{gift.length}/120</p>
                 </div>
-                <button className="tap w-full rounded-xl border border-dashed border-royal-300 bg-royal-50/50 py-2.5 text-[13px] font-semibold text-royal-700">
-                  + Neue Adresse hinzufügen
-                </button>
               </div>
             </div>
             <button
@@ -168,7 +195,15 @@ export default function Checkout() {
         {step === 2 && (
           <div className="anim-slide-in space-y-3">
             <div className="rounded-2xl border border-mist-200 bg-white p-4 shadow-card">
-              <p className="text-[13px] font-bold text-deep-900">Deine Artikel</p>
+              <p className="text-[13px] font-bold text-deep-900">
+                Lieferadresse · <span className="font-semibold text-slate-500">{addr === 'home' ? 'Zuhause' : 'Studio'}</span>
+              </p>
+              {gift.trim() && (
+                <p className="mt-1.5 rounded-xl bg-mist-50 px-3 py-2 text-[12px] italic text-slate-500">
+                  „{gift.trim()}“
+                </p>
+              )}
+              <p className="mt-3 text-[13px] font-bold text-deep-900">Deine Artikel</p>
               <div className="mt-3 space-y-3">
                 {cart.map((c) => {
                   const p = productById(c.productId)!;

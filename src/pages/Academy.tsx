@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GraduationCap, Radio, PlayCircle, Clock, Users, ArrowRight, Award, CalendarDays } from 'lucide-react';
 import { courses } from '../data/courses';
 import { events, formatDate, formatDateShort } from '../data/events';
 import { useApp, eur } from '../store/AppStore';
-import { TopBar, SmartImage, SectionHeader, ProgressBar } from '../components/ui';
+import { TopBar, SmartImage, SectionHeader, ProgressBar, Chip } from '../components/ui';
 
 export default function Academy() {
   const { enrolled, courseProgress } = useApp();
+  const [level, setLevel] = useState<'alle' | 'Einsteiger' | 'Fortgeschritten' | 'Profi'>('alle');
+  const shownCourses = level === 'alle' ? courses : courses.filter((c) => c.level === level);
   const continueCourse = courses.find((c) => c.id === 'korean-powder-2')!;
 
   return (
@@ -100,8 +103,15 @@ export default function Academy() {
       {/* Kurse */}
       <section id="kurse" className="scroll-mt-20 pt-6">
         <SectionHeader title="Videokurse" sub="Zertifizierte Online-Ausbildungen" />
+        <div className="no-scrollbar -mx-0 mb-3 flex gap-2 overflow-x-auto px-4">
+          {(['alle', 'Einsteiger', 'Fortgeschritten', 'Profi'] as const).map((l) => (
+            <Chip key={l} active={level === l} onClick={() => setLevel(l)}>
+              {l === 'alle' ? 'Alle Levels' : l}
+            </Chip>
+          ))}
+        </div>
         <div className="space-y-3 px-4">
-          {courses.map((c) => (
+          {shownCourses.map((c) => (
             <Link
               key={c.id}
               to={`/academy/course/${c.id}`}

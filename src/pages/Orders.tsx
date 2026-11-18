@@ -1,14 +1,32 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, ChevronRight } from 'lucide-react';
 import { useApp, eur, productById } from '../store/AppStore';
-import { TopBar, SmartImage, EmptyState } from '../components/ui';
+import { TopBar, SmartImage, EmptyState, Chip } from '../components/ui';
 
 export default function Orders() {
   const { orders } = useApp();
+  const [tab, setTab] = useState<'alle' | 'unterwegs' | 'geliefert'>('alle');
+  const shown = tab === 'alle' ? orders : orders.filter((x) => x.status === tab);
 
   return (
     <div className="anim-slide-in min-h-full bg-mist-50 pb-6">
       <TopBar title="Meine Bestellungen" back="/profile" />
+
+      {/* Status-Filter */}
+      <div className="no-scrollbar flex gap-2 px-4 pb-2 pt-3">
+        {(
+          [
+            ['alle', `Alle · ${orders.length}`],
+            ['unterwegs', `Unterwegs · ${orders.filter((x) => x.status === 'unterwegs').length}`],
+            ['geliefert', `Geliefert · ${orders.filter((x) => x.status === 'geliefert').length}`],
+          ] as const
+        ).map(([id, label]) => (
+          <Chip key={id} active={tab === id} onClick={() => setTab(id)}>
+            {label}
+          </Chip>
+        ))}
+      </div>
 
       {orders.length === 0 ? (
         <EmptyState
@@ -26,7 +44,7 @@ export default function Orders() {
         />
       ) : (
         <div className="space-y-3 px-4 pt-3">
-          {orders.map((o) => (
+          {shown.map((o) => (
             <Link
               key={o.id}
               to={`/profile/orders/${o.id}`}

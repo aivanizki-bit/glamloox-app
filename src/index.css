@@ -123,3 +123,31 @@ body {
   background-size: 800px 100%;
   animation: shimmer 1.4s infinite linear;
 }
+
+/* ── R7: Konfetti ── */
+.confetti {
+  position: absolute;
+  top: -14px;
+  width: 8px;
+  height: 13px;
+  border-radius: 2px;
+  opacity: 0.95;
+  animation-name: confettiFall;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  pointer-events: none;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(-24px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(560px) rotate(560deg); opacity: 0; }
+}
+
+/* ── R10: Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

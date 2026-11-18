@@ -1,4 +1,5 @@
-import { Gift, Sparkles, Percent, Truck, BadgeCheck } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Gift, Sparkles, Percent, Truck, BadgeCheck, ShoppingBag, GraduationCap, PenSquare, Heart } from 'lucide-react';
 import { demoUser } from '../data/user';
 import { useApp } from '../store/AppStore';
 import { TopBar } from '../components/ui';
@@ -11,7 +12,28 @@ const perks = [
 ];
 
 export default function Rewards() {
-  const { rewardPoints } = useApp();
+  const { rewardPoints, orders, enrolled, favorites, userPosts } = useApp();
+  const [displayPts, setDisplayPts] = useState(0);
+
+  useEffect(() => {
+    let raf: number;
+    const t0 = performance.now();
+    const dur = 900;
+    const step = (t: number) => {
+      const p = Math.min(1, (t - t0) / dur);
+      setDisplayPts(Math.round(rewardPoints * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [rewardPoints]);
+
+  const achievements = [
+    { icon: ShoppingBag, title: 'Erste Bestellung', desc: 'Willkommen im Club', unlocked: orders.length >= 1 },
+    { icon: GraduationCap, title: 'Academy-Fan', desc: '2+ Kurse eingeschrieben', unlocked: enrolled.length >= 2 },
+    { icon: PenSquare, title: 'Community-Stimme', desc: 'Erster eigener Beitrag', unlocked: userPosts.length >= 1 },
+    { icon: Heart, title: 'Booster-Profi', desc: '3+ Favoriten gemerkt', unlocked: favorites.length >= 3 },
+  ];
   const pct = Math.min(100, (rewardPoints / demoUser.nextTierAt) * 100);
 
   return (
@@ -29,7 +51,7 @@ export default function Rewards() {
               GLAMLOOX Rewards · {demoUser.rewardTier}
             </p>
             <p className="text-[24px] font-extrabold leading-tight text-white">
-              {rewardPoints} <span className="text-[14px] font-semibold text-white/60">Punkte</span>
+              {displayPts} <span className="text-[14px] font-semibold text-white/60">Punkte</span>
             </p>
           </div>
         </div>
@@ -91,6 +113,30 @@ export default function Rewards() {
             </div>
           );
         })}
+      </div>
+
+      {/* Erfolge */}
+      <h2 className="px-4 pb-2 pt-6 text-[16px] font-bold tracking-tight text-deep-900">Deine Erfolge</h2>
+      <div className="grid grid-cols-2 gap-2.5 px-4">
+        {achievements.map(({ icon: Icon, title, desc, unlocked }) => (
+          <div
+            key={title}
+            className={`rounded-2xl border p-3.5 shadow-card ${unlocked ? 'border-royal-100 bg-white' : 'border-mist-200 bg-white/50'}`}
+          >
+            <span
+              className={`flex h-9 w-9 items-center justify-center rounded-xl ${unlocked ? 'bg-gradient-to-br from-gold-400 to-gold-500 text-white' : 'bg-mist-100 text-slate-300'}`}
+            >
+              <Icon className="h-[18px] w-[18px]" aria-hidden />
+            </span>
+            <p className={`mt-2 text-[12.5px] font-bold leading-tight ${unlocked ? 'text-deep-900' : 'text-slate-400'}`}>
+              {title}
+            </p>
+            <p className="text-[10.5px] text-slate-400">{desc}</p>
+            <p className={`mt-1.5 text-[10px] font-bold uppercase tracking-wide ${unlocked ? 'text-emerald-600' : 'text-slate-300'}`}>
+              {unlocked ? 'Freigeschaltet ✓' : 'Gesperrt'}
+            </p>
+          </div>
+        ))}
       </div>
 
       <p className="mt-5 px-8 text-center text-[10.5px] leading-relaxed text-slate-400">

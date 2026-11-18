@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Heart, MessageCircle, Bookmark, SendHorizontal, ChevronLeft } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, SendHorizontal, ChevronLeft, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { memberById } from '../data/community';
 import { demoUser } from '../data/user';
@@ -13,7 +13,7 @@ const typeLabel = { ergebnis: 'Ergebnis', frage: 'Frage', tipp: 'Tipp' };
 export default function PostDetail() {
   const { postId } = useParams();
   const navigate = useNavigate();
-  const { allPosts, likedPosts, savedPosts, toggleLike, toggleSave, comments, addComment } = useApp();
+  const { allPosts, likedPosts, savedPosts, toggleLike, toggleSave, comments, addComment, toggleCommentLike, isCommentLiked, toast } = useApp();
   const post = allPosts.find((p) => p.id === postId);
   const [draft, setDraft] = useState('');
 
@@ -51,6 +51,16 @@ export default function PostDetail() {
         <h1 className="flex-1 truncate text-[16px] font-bold tracking-tight text-deep-900">
           Beitrag
         </h1>
+        <button
+          onClick={async () => {
+            try { await navigator.clipboard.writeText(location.href); } catch { /* Demo */ }
+            toast('Beitragslink kopiert (Demo)', 'star');
+          }}
+          aria-label="Beitrag teilen"
+          className="tap flex h-9 w-9 items-center justify-center rounded-full text-deep-900 active:bg-mist-100"
+        >
+          <Share2 className="h-[18px] w-[18px]" aria-hidden />
+        </button>
         <span className="rounded-full bg-royal-50 px-2.5 py-1 text-[11px] font-bold text-royal-700">
           {typeLabel[post.type]}
         </span>
@@ -157,6 +167,17 @@ export default function PostDetail() {
                     <span className="ml-2 font-medium text-slate-400">{c.ago}</span>
                   </p>
                   <p className="mt-0.5 text-[13px] leading-relaxed text-slate-600">{c.text}</p>
+                  <button
+                    onClick={() => toggleCommentLike(post.id, c.id)}
+                    aria-label={isCommentLiked(post.id, c.id) ? 'Like entfernen' : 'Kommentar liken'}
+                    className="tap mt-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-slate-400"
+                  >
+                    <Heart
+                      className={`h-3.5 w-3.5 ${isCommentLiked(post.id, c.id) ? 'anim-pop fill-royal-600 text-royal-600' : ''}`}
+                      aria-hidden
+                    />
+                    {isCommentLiked(post.id, c.id) ? 'Gefällt mir' : 'Gefällt mir'}
+                  </button>
                 </div>
               </div>
             );

@@ -10,6 +10,7 @@ import {
   Settings,
   MapPin,
   Star,
+  Bookmark,
 } from 'lucide-react';
 import { demoUser } from '../data/user';
 import { courses } from '../data/courses';
@@ -18,7 +19,7 @@ import { TopBar, Avatar, ProgressBar, BellButton } from '../components/ui';
 import { events } from '../data/events';
 
 export default function Profile() {
-  const { orders, favorites, enrolled, certificates, eventRegs, courseProgress, rewardPoints } = useApp();
+  const { orders, favorites, enrolled, certificates, eventRegs, courseProgress, rewardPoints, savedPosts } = useApp();
   const activeCourse = courses.find((c) => c.id === 'korean-powder-2')!;
   const prog = courseProgress(activeCourse.id);
   const nextEvents = events.filter((e) => eventRegs.includes(e.id));
@@ -26,6 +27,7 @@ export default function Profile() {
   const items = [
     { to: '/profile/orders', icon: Package, label: 'Meine Bestellungen', value: `${orders.length}` },
     { to: '/profile/favorites', icon: Heart, label: 'Meine Favoriten', value: `${favorites.length}` },
+    { to: '/community?filter=gespeichert', icon: Bookmark, label: 'Gespeicherte Beiträge', value: `${savedPosts.length}` },
     { to: '/academy/my', icon: GraduationCap, label: 'Meine Kurse', value: `${enrolled.length}` },
     { to: '/profile/certificates', icon: Award, label: 'Meine Zertifikate', value: `${certificates.length}` },
     { to: '/profile/events', icon: CalendarCheck, label: 'Live-Anmeldungen', value: `${nextEvents.length}` },

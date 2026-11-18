@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Bookmark, PenSquare, Search, X } from 'lucide-react';
-import { memberById, type Post } from '../data/community';
+import { memberById, members, type Post } from '../data/community';
 import { demoUser } from '../data/user';
 import { useApp } from '../store/AppStore';
 import { TopBar, Chip, SmartImage, Avatar, EmptyState, BellButton } from '../components/ui';
@@ -129,7 +130,9 @@ export function PostCard({ post }: { post: Post }) {
 }
 
 export default function Community() {
-  const [filter, setFilter] = useState<'alle' | Post['type'] | 'gespeichert'>('alle');
+  const [params] = useSearchParams();
+  const initialFilter = (params.get('filter') as 'alle' | Post['type'] | 'gespeichert' | null) ?? 'alle';
+  const [filter, setFilter] = useState<'alle' | Post['type'] | 'gespeichert'>(initialFilter);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const { allPosts, savedPosts } = useApp();
@@ -231,6 +234,21 @@ export default function Community() {
           </span>
         </Link>
       </div>
+
+      {/* Aktive Profis */}
+      <section className="px-4 pt-4">
+        <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Aktive Profis</p>
+        <div className="no-scrollbar mt-2.5 flex gap-3.5 overflow-x-auto pb-1">
+          {members.map((m) => (
+            <Link key={m.id} to={`/community/member/${m.id}`} className="tap flex w-[62px] shrink-0 flex-col items-center gap-1.5">
+              <Avatar name={m.name} gradient={m.gradient} size={54} />
+              <span className="w-full truncate text-center text-[10.5px] font-semibold text-deep-900">
+                {m.name.split(' ')[0]}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {/* Filter */}
       <div className="sticky top-[54px] z-20 border-b border-mist-200 bg-mist-50/95 px-4 py-2.5 backdrop-blur-xl">

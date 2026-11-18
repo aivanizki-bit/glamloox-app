@@ -24,8 +24,7 @@ const parseDur = (d: string): number => {
 const fmt = (s: number): string =>
   `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
-// Zeitraffer: 1 Sek. Realzeit = 25 Sek. Videotime (Demo)
-const SPEED = 25;
+// (R3) Speed ist jetzt Player-State
 
 export default function LessonPlayer() {
   const { courseId, lessonId } = useParams();
@@ -44,6 +43,7 @@ export default function LessonPlayer() {
   const total = lesson ? parseDur(lesson.duration) : 600;
   const [time, setTime] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [speed, setSpeed] = useState(25);
   const barRef = useRef<HTMLDivElement>(null);
   const done = !!progress[lessonId ?? ''];
 
@@ -52,7 +52,7 @@ export default function LessonPlayer() {
     if (!playing) return;
     const t = setInterval(() => {
       setTime((s) => {
-        const next = s + SPEED;
+        const next = s + speed;
         if (next >= total) {
           setPlaying(false);
           return total;
@@ -61,7 +61,7 @@ export default function LessonPlayer() {
       });
     }, 1000);
     return () => clearInterval(t);
-  }, [playing, total]);
+  }, [playing, total, speed]);
 
   // Automatisch abschließen
   useEffect(() => {
@@ -71,7 +71,18 @@ export default function LessonPlayer() {
     }
   }, [time, total, lessonId, done, toggleLesson, toast]);
 
-  useEffect(() => () => setPlaying(false), [lessonId]);
+  // Space-Taste = Play/Pause (Desktop-Komfort)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== 'Space') return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+      e.preventDefault();
+      setPlaying((p) => !p);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   if (!course || !lesson) {
     return (
@@ -125,7 +136,7 @@ export default function LessonPlayer() {
 
           {/* Demo-Zeitraffer Badge */}
           <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-deep-950/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-royal-200 backdrop-blur">
-            <Gauge className="h-3 w-3" aria-hidden /> Demo-Player · {SPEED}× Zeitraffer
+            <Gauge className="h-3 w-3" aria-hidden /> Demo-Player · {speed}× Zeitraffer
           </span>
 
           {/* Controls */}
@@ -175,6 +186,13 @@ export default function LessonPlayer() {
               <span className="text-[12px] font-semibold tabular-nums text-white/90">
                 {fmt(time)} / {fmt(total)}
               </span>
+              <button
+                onClick={() => setSpeed((s) => (s === 25 ? 5 : s === 5 ? 1 : 25))}
+                aria-label="Wiedergabegeschwindigkeit wechseln"
+                className="tap flex h-8 items-center gap-1 rounded-full px-2.5 text-[11px] font-bold active:bg-white/15"
+              >
+                <Gauge className="h-4 w-4" aria-hidden /> {speed}×
+              </button>
               <span className="ml-auto flex items-center gap-1 text-[10.5px] font-semibold text-white/60">
                 <Maximize2 className="h-3.5 w-3.5" aria-hidden /> HD
               </span>

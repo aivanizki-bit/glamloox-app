@@ -61,6 +61,7 @@ interface PersistedState {
   orders: DemoOrder[];
   likedPosts: string[];
   savedPosts: string[];
+  likedComments: string[];
   comments: Record<string, Comment[]>;
   userPosts: Post[];
   rewardPoints: number;
@@ -82,6 +83,7 @@ const DEFAULT_STATE: PersistedState = {
   orders: initialOrders,
   likedPosts: [],
   savedPosts: [],
+  likedComments: [],
   comments: {},
   userPosts: [],
   rewardPoints: demoUser.rewardPoints,
@@ -128,6 +130,8 @@ export interface AppState extends PersistedState {
   checkout: () => DemoOrder;
   // Community
   toggleLike: (postId: string) => void;
+  toggleCommentLike: (postId: string, commentId: string) => void;
+  isCommentLiked: (postId: string, commentId: string) => boolean;
   toggleSave: (postId: string) => void;
   addComment: (postId: string, text: string) => void;
   addUserPost: (post: Post) => void;
@@ -325,6 +329,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const toggleCommentLike = useCallback((postId: string, commentId: string) => {
+    setState((s) => {
+      const key = postId + ':' + commentId;
+      const has = s.likedComments.includes(key);
+      return {
+        ...s,
+        likedComments: has ? s.likedComments.filter((k) => k !== key) : [...s.likedComments, key],
+      };
+    });
+  }, []);
+  const isCommentLiked = useCallback(
+    (postId: string, commentId: string) => state.likedComments.includes(postId + ':' + commentId),
+    [state.likedComments],
+  );
+
   const toggleSave = useCallback(
     (postId: string) => {
       setState((s) => {
@@ -455,6 +474,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     unregisterEvent,
     checkout,
     toggleLike,
+    toggleCommentLike,
+    isCommentLiked,
     toggleSave,
     addComment,
     addUserPost,

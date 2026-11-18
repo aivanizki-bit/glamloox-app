@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { products } from '../data/products';
 import { useApp, eur } from '../store/AppStore';
-import { TopBar, SmartImage, EmptyState, HeartButton } from '../components/ui';
+import { TopBar, SmartImage, EmptyState, HeartButton, ProductCardMini } from '../components/ui';
 
 export default function Favorites() {
   const { favorites, addToCart } = useApp();
@@ -13,19 +13,33 @@ export default function Favorites() {
       <TopBar title="Meine Favoriten" back="/profile" />
 
       {favProducts.length === 0 ? (
-        <EmptyState
-          icon={<Heart className="h-7 w-7" aria-hidden />}
-          title="Noch keine Favoriten"
-          text="Tippe beim Produkt auf das ♥, um es hier zu merken."
-          action={
-            <Link
-              to="/shop"
-              className="tap inline-block rounded-full bg-deep-900 px-6 py-3 text-[14px] font-semibold text-white shadow-card"
-            >
-              Produkte entdecken
-            </Link>
-          }
-        />
+        <>
+          <EmptyState
+            icon={<Heart className="h-7 w-7" aria-hidden />}
+            title="Noch keine Favoriten"
+            text="Tippe beim Produkt auf das ♥, um es hier zu merken."
+            action={
+              <Link
+                to="/shop"
+                className="tap inline-block rounded-full bg-deep-900 px-6 py-3 text-[14px] font-semibold text-white shadow-card"
+              >
+                Produkte entdecken
+              </Link>
+            }
+          />
+          <section className="pt-2">
+            <div className="px-4 pb-2">
+              <h2 className="text-[15px] font-bold text-deep-900">Beliebte Produkte</h2>
+            </div>
+            <div className="no-scrollbar flex gap-3 overflow-x-auto px-4 pb-2">
+              {products
+                .filter((p) => ['lash-booster', 'brow-booster', 'booster-set', 'peptide-mascara', 'elan-try-me', 'pads-fusion'].includes(p.id))
+                .map((p) => (
+                  <ProductCardMini key={p.id} product={p} />
+                ))}
+            </div>
+          </section>
+        </>
       ) : (
         <div className="space-y-3 px-4 pt-3">
           {favProducts.map((p) => (

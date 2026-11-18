@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Search,
@@ -35,9 +36,27 @@ const catTiles = [
   { id: 'zubehoer', label: 'Zubehör', img: products.find((p) => p.id === 'beauty-organizer')!.images[0] },
 ];
 
+const heroSlides = [
+  { kind: 'product' as const, id: 'lash-booster', badge: 'Bestseller', title: 'LASH BOOSTER Serum', sub: 'Wimpernserum ohne Hormone · 4 ml' },
+  { kind: 'course' as const, id: 'korean-powder-2', badge: 'Academy', title: 'Korean Lash Lift', sub: 'Premium-Kurs mit Live-Coaching' },
+  { kind: 'product' as const, id: 'beauty-organizer', badge: 'Neu im Shop', title: 'Beauty Organizer', sub: 'Dein mobiler Arbeitsplatz' },
+];
+
 export default function Home() {
   const { courseProgress, enrolled } = useApp();
-  const hero = products.find((p) => p.id === 'lash-booster')!;
+  const slideRef = useRef<HTMLDivElement>(null);
+  const [slideIdx, setSlideIdx] = useState(0);
+
+  useEffect(() => {
+    const el = slideRef.current;
+    if (!el) return;
+    const t = setInterval(() => {
+      const step = (el.querySelector('a')?.clientWidth ?? el.clientWidth) + 12;
+      const next = (Math.round(el.scrollLeft / step) + 1) % heroSlides.length;
+      el.scrollTo({ left: next * step, behavior: 'smooth' });
+    }, 5200);
+    return () => clearInterval(t);
+  }, []);
   const heroCourse = courses[0];
   const heroPost = seedPosts[0];
   const heroPostAuthor = memberById(heroPost.authorId);
@@ -112,27 +131,63 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Hero-Produkt */}
-        <Link
-          to={`/shop/p/${hero.id}`}
-          className="tap relative mt-5 flex items-center gap-4 rounded-3xl border border-white/15 bg-white/10 p-3 backdrop-blur-md"
+        {/* Hero-Slider */}
+        <div
+          ref={slideRef}
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            const step = (el.querySelector('a')?.clientWidth ?? el.clientWidth) + 12;
+            setSlideIdx(Math.min(heroSlides.length - 1, Math.round(el.scrollLeft / step)));
+          }}
+          className="no-scrollbar mt-5 flex snap-x snap-mandatory overflow-x-auto"
         >
-          <SmartImage
-            src={hero.images[0]}
-            alt={hero.title}
-            eager
-            className="h-[84px] w-[84px] shrink-0 rounded-2xl bg-white shadow-float ring-1 ring-white/50"
-          />
-          <div className="min-w-0 flex-1">
-            <span className="flex w-fit items-center gap-1 rounded-full bg-royal-500/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-royal-100">
-              <Flame className="h-3 w-3" aria-hidden /> Bestseller
-            </span>
-            <p className="mt-1 truncate text-[15px] font-bold text-white">{hero.shortTitle}</p>
-            <p className="truncate text-[12px] text-royal-100/70">Wimpernserum ohne Hormone · 4 ml</p>
-            <p className="mt-0.5 text-[15px] font-extrabold text-white">{eur(hero.price)}</p>
-          </div>
-          <ArrowRight className="h-5 w-5 shrink-0 text-white/60" aria-hidden />
-        </Link>
+          {heroSlides.map((s) => {
+            const p = s.kind === 'product' ? products.find((x) => x.id === s.id) : null;
+            const c = s.kind === 'course' ? courses.find((x) => x.id === s.id) : null;
+            const img = s.kind === 'product' ? p!.images[0] : c!.image;
+            const to = s.kind === 'product' ? `/shop/p/${s.id}` : `/academy/course/${s.id}`;
+            const priceLine = s.kind === 'product' ? eur(p!.price) : `ab ${eur(c!.price)} · Kurs`;
+            return (
+              <Link
+                key={s.kind + s.id}
+                to={to}
+                className="tap relative flex w-full shrink-0 snap-center items-center gap-4 rounded-3xl border border-white/15 bg-white/10 p-3 backdrop-blur-md"
+              >
+                <SmartImage
+                  src={img}
+                  alt={s.title}
+                  eager
+                  className="h-[84px] w-[84px] shrink-0 rounded-2xl bg-white shadow-float ring-1 ring-white/50"
+                />
+                <div className="min-w-0 flex-1">
+                  <span className="flex w-fit items-center gap-1 rounded-full bg-royal-500/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-royal-100">
+                    <Flame className="h-3 w-3" aria-hidden /> {s.badge}
+                  </span>
+                  <p className="mt-1 truncate text-[15px] font-bold text-white">{s.title}</p>
+                  <p className="truncate text-[12px] text-royal-100/70">{s.sub}</p>
+                  <p className="mt-0.5 text-[15px] font-extrabold text-white">{priceLine}</p>
+                </div>
+                <ArrowRight className="h-5 w-5 shrink-0 text-white/60" aria-hidden />
+              </Link>
+            );
+          })}
+        </div>
+        {/* Slider-Punkte */}
+        <div className="mt-3 flex justify-center gap-1.5">
+          {heroSlides.map((_, i) => (
+            <button
+              key={'dot' + i}
+              onClick={() => {
+                const el = slideRef.current;
+                if (!el) return;
+                const step = (el.querySelector('a')?.clientWidth ?? el.clientWidth) + 12;
+                el.scrollTo({ left: i * step, behavior: 'smooth' });
+              }}
+              aria-label={`Slide ${i + 1} von ${heroSlides.length}`}
+              className={`tap h-1.5 rounded-full transition-all ${i === slideIdx ? 'w-5 bg-white' : 'w-1.5 bg-white/30'}`}
+            />
+          ))}
+        </div>
       </section>
 
       {/* ── Kategorien ─────────────────────────── */}

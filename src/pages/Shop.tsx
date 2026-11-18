@@ -14,11 +14,13 @@ export default function Shop() {
   const [vendor, setVendor] = useState('Alle Marken');
   const [filterOpen, setFilterOpen] = useState(false);
   const [sort, setSort] = useState<'beliebt' | 'preis-auf' | 'preis-ab'>('beliebt');
+  const [favOnly, setFavOnly] = useState(false);
   const { favorites, recentlyViewed } = useApp();
 
   const filtered = useMemo(() => {
     let list = products;
     if (catParam !== 'alle') list = list.filter((p) => p.category === catParam);
+    if (favOnly) list = list.filter((p) => favorites.includes(p.id));
     if (vendor !== 'Alle Marken') list = list.filter((p) => p.vendor === vendor);
     if (query.trim()) {
       const q = query.trim().toLowerCase();
@@ -33,7 +35,7 @@ export default function Shop() {
     if (sort === 'preis-auf') list = [...list].sort((a, b) => a.price - b.price);
     if (sort === 'preis-ab') list = [...list].sort((a, b) => b.price - a.price);
     return list;
-  }, [catParam, vendor, query, sort]);
+  }, [catParam, vendor, query, sort, favOnly, favorites]);
 
   const setCat = (c: string) => {
     if (c === 'alle') params.delete('cat');
@@ -95,6 +97,9 @@ export default function Shop() {
               {c.label}
             </Chip>
           ))}
+          <Chip active={favOnly} onClick={() => setFavOnly((v) => !v)}>
+            ♥ Favoriten{favorites.length > 0 ? ` · ${favorites.length}` : ''}
+          </Chip>
         </div>
 
         {/* Filter-Panel */}
@@ -169,6 +174,7 @@ export default function Shop() {
                 setQuery('');
                 setVendor('Alle Marken');
                 setCat('alle');
+                setFavOnly(false);
               }}
               className="tap rounded-full bg-deep-900 px-5 py-2.5 text-[14px] font-semibold text-white shadow-card"
             >

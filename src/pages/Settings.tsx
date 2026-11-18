@@ -6,6 +6,7 @@ import {
   Info,
   ShieldCheck,
   ChevronRight,
+  Sun,
   FileText,
 } from 'lucide-react';
 import { useApp } from '../store/AppStore';
@@ -79,6 +80,20 @@ export default function Settings() {
           />
         </div>
 
+        {/* Erscheinungsbild */}
+        <div className="overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-card">
+          <div className="flex items-center gap-3.5 px-4 py-3.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-royal-50 text-royal-600">
+              <Sun className="h-[18px] w-[18px]" aria-hidden />
+            </span>
+            <span className="flex-1">
+              <span className="block text-[14px] font-semibold text-deep-900">Erscheinungsbild</span>
+              <span className="block text-[11.5px] text-slate-400">Hell · passend zum Brand-Design</span>
+            </span>
+            <span className="rounded-full bg-mist-100 px-2.5 py-1 text-[10.5px] font-bold text-slate-500">Demo</span>
+          </div>
+        </div>
+
         {/* Demo */}
         <div className="overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-card">
           <p className="border-b border-mist-200 bg-mist-50 px-4 py-2.5 text-[12px] font-bold uppercase tracking-wide text-slate-400">
@@ -120,7 +135,7 @@ export default function Settings() {
               keine echten Bestellungen oder Zahlungen statt.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {['Version 1.0', 'React + Vite', 'Lokaler Demo-Speicher'].map((t) => (
+              {['Version 1.1', 'React + Vite', 'Lokaler Demo-Speicher'].map((t) => (
                 <span key={t} className="rounded-full bg-mist-100 px-2.5 py-1 text-[10.5px] font-bold text-slate-500">
                   {t}
                 </span>
