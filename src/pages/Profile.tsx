@@ -14,7 +14,7 @@ import {
 import { demoUser } from '../data/user';
 import { courses } from '../data/courses';
 import { useApp } from '../store/AppStore';
-import { TopBar, Avatar, ProgressBar } from '../components/ui';
+import { TopBar, Avatar, ProgressBar, BellButton } from '../components/ui';
 import { events } from '../data/events';
 
 export default function Profile() {
@@ -35,7 +35,7 @@ export default function Profile() {
 
   return (
     <div className="anim-fade-in min-h-full bg-mist-50 pb-6">
-      <TopBar title="Profil" />
+      <TopBar title="Profil" right={<BellButton />} />
 
       {/* Kopfbereich */}
       <div className="bg-gradient-to-br from-deep-950 via-deep-900 to-royal-800 px-4 pb-5 pt-3">

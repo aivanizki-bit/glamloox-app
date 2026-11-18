@@ -23,6 +23,7 @@ import {
   Avatar,
   CartButton,
   ProgressBar,
+  BellButton,
 } from '../components/ui';
 
 const bestsellers = ['lash-booster', 'brow-booster', 'booster-set', 'peptide-mascara', 'elan-try-me', 'pads-fusion'];
@@ -58,6 +59,7 @@ export default function Home() {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <BellButton />
           <Link
             to="/shop"
             aria-label="Suche"

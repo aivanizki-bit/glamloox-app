@@ -29,6 +29,23 @@ export interface CartItem {
   price: number; // Stückpreis
 }
 
+export interface NotifItem {
+  id: string;
+  kind: 'order' | 'course' | 'event' | 'community' | 'system';
+  title: string;
+  body: string;
+  ago: string;
+  read: boolean;
+  link?: string;
+}
+
+const SEED_NOTIFS: NotifItem[] = [
+  { id: 'n1', kind: 'order', title: 'Bestellung GLX-10247 unterwegs', body: 'Deine Lash Booster sind auf dem Weg – voraussichtlich morgen bei dir.', ago: 'vor 3 Std.', read: false, link: '/profile/orders' },
+  { id: 'n2', kind: 'course', title: 'Nur noch 4 Lektionen!', body: 'Du bist dem Korean-Lift-Zertifikat ganz nah – weiter so!', ago: 'vor 1 Tag', read: false, link: '/academy/course/korean-powder-2' },
+  { id: 'n3', kind: 'event', title: 'Webinar-Erinnerung', body: 'BIG KOREAN Lashlift Webinar am 3. Dez. um 19:00 Uhr.', ago: 'vor 2 Tagen', read: true, link: '/academy/event/ev-big-korean-webinar' },
+  { id: 'n4', kind: 'community', title: 'Neue Reaktion', body: 'Jules Berger gefällt dein Lifting-Ergebnis.', ago: 'vor 3 Tagen', read: true, link: '/community/post/p1' },
+];
+
 export interface Toast {
   id: number;
   msg: string;
@@ -47,6 +64,12 @@ interface PersistedState {
   comments: Record<string, Comment[]>;
   userPosts: Post[];
   rewardPoints: number;
+  notifications: NotifItem[];
+  follows: string[];
+  reminders: string[];
+  recentlyViewed: string[];
+  discount: { code: string; pct: number } | null;
+  notifOpen: boolean;
   settings: { newsletter: boolean; pushEvents: boolean; darkPreview: boolean };
 }
 
@@ -62,6 +85,12 @@ const DEFAULT_STATE: PersistedState = {
   comments: {},
   userPosts: [],
   rewardPoints: demoUser.rewardPoints,
+  notifications: SEED_NOTIFS,
+  follows: [],
+  reminders: [],
+  recentlyViewed: [],
+  discount: null,
+  notifOpen: false,
   settings: { newsletter: true, pushEvents: true, darkPreview: false },
 };
 
@@ -103,6 +132,17 @@ export interface AppState extends PersistedState {
   addComment: (postId: string, text: string) => void;
   addUserPost: (post: Post) => void;
   allPosts: Post[];
+  // Notifications
+  unreadNotifs: number;
+  openNotifs: () => void;
+  closeNotifs: () => void;
+  markAllNotifsRead: () => void;
+  toggleFollow: (memberId: string) => void;
+  isFollowing: (memberId: string) => boolean;
+  toggleReminder: (eventId: string) => void;
+  pushRecentlyViewed: (productId: string) => void;
+  applyDiscount: (code: string) => boolean;
+  clearDiscount: () => void;
   // Misc
   toasts: Toast[];
   toast: (msg: string, icon?: Toast['icon']) => void;
@@ -116,6 +156,10 @@ const Ctx = createContext<AppState | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<PersistedState>(load);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
   const toastId = useRef(1);
 
   useEffect(() => {
@@ -242,27 +286,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Checkout (Demo) ──────────────────────────────────
   const checkout = useCallback((): DemoOrder => {
+    const latest = stateRef.current;
     const order: DemoOrder = {
       id: 'GLX-' + Math.floor(10300 + Math.random() * 800),
       dateISO: new Date().toISOString().slice(0, 10),
       status: 'unterwegs',
-      items: state.cart.map((c) => ({
+      items: latest.cart.map((c) => ({
         productId: c.productId,
         qty: c.qty,
         price: c.price,
         variantName: c.variantName || undefined,
       })),
-      total: state.cart.reduce((n, c) => n + c.qty * c.price, 0),
+      total: Math.round(latest.cart.reduce((n, c) => n + c.qty * c.price, 0) * (1 - (latest.discount?.pct ?? 0) / 100) * 100) / 100,
     };
     // Bestellung anlegen, Warenkorb leeren, +50 Reward-Punkte (Demo)
     setState((s) => ({
       ...s,
       orders: [order, ...s.orders],
       cart: [],
+      discount: null,
       rewardPoints: s.rewardPoints + 50,
+      notifications: [
+        { id: 'no' + Date.now(), kind: 'order' as const, title: 'Bestellung ' + order.id + ' bestätigt', body: 'Danke! Deine Bestellung ist bei uns eingegangen.', ago: 'gerade eben', read: false, link: '/profile/orders' },
+        ...s.notifications,
+      ].slice(0, 20),
     }));
     return order;
-  }, [state.cart]);
+  }, []);
 
   // ── Community ────────────────────────────────────────
   const toggleLike = useCallback((postId: string) => {
@@ -321,6 +371,73 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
   }, []);
 
+  // ── Notifications & neue Features ────────────────────
+  const unreadNotifs = useMemo(
+    () => state.notifications.filter((n) => !n.read).length,
+    [state.notifications],
+  );
+  const openNotifs = useCallback(() => setState((s) => ({ ...s, notifOpen: true })), []);
+  const closeNotifs = useCallback(() => setState((s) => ({ ...s, notifOpen: false })), []);
+  const markAllNotifsRead = useCallback(() => {
+    setState((s) => ({ ...s, notifications: s.notifications.map((n) => ({ ...n, read: true })) }));
+  }, []);
+
+  const toggleFollow = useCallback(
+    (memberId: string) => {
+      setState((s) => {
+        const has = s.follows.includes(memberId);
+        return { ...s, follows: has ? s.follows.filter((f) => f !== memberId) : [...s.follows, memberId] };
+      });
+    },
+    [],
+  );
+  const isFollowing = useCallback((memberId: string) => state.follows.includes(memberId), [state.follows]);
+
+  const toggleReminder = useCallback(
+    (eventId: string) => {
+      setState((s) => {
+        const has = s.reminders.includes(eventId);
+        if (has) return { ...s, reminders: s.reminders.filter((r) => r !== eventId) };
+        return {
+          ...s,
+          reminders: [...s.reminders, eventId],
+          notifications: [
+            { id: 'nr' + Date.now(), kind: 'event' as const, title: 'Erinnerung aktiviert', body: 'Wir erinnern dich vor dem Live-Event.', ago: 'gerade eben', read: false },
+            ...s.notifications,
+          ].slice(0, 20),
+        };
+      });
+    },
+    [],
+  );
+
+  const pushRecentlyViewed = useCallback((productId: string) => {
+    setState((s) => ({
+      ...s,
+      recentlyViewed: [productId, ...s.recentlyViewed.filter((id) => id !== productId)].slice(0, 8),
+    }));
+  }, []);
+
+  const applyDiscount = useCallback(
+    (code: string): boolean => {
+      const c = code.trim().toUpperCase();
+      if (c === 'GLAM10') {
+        setState((s) => ({ ...s, discount: { code: 'GLAM10', pct: 10 } }));
+        toast('Rabattcode GLAM10 aktiviert – 10 %', 'star');
+        return true;
+      }
+      if (c === 'GLAM5') {
+        setState((s) => ({ ...s, discount: { code: 'GLAM5', pct: 5 } }));
+        toast('Rabattcode GLAM5 aktiviert – 5 %', 'star');
+        return true;
+      }
+      toast('Code ungültig – probiere GLAM10', 'info');
+      return false;
+    },
+    [toast],
+  );
+  const clearDiscount = useCallback(() => setState((s) => ({ ...s, discount: null })), []);
+
   const value: AppState = {
     ...state,
     addToCart,
@@ -347,6 +464,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     resetDemo,
     updateSettings,
     certificates,
+    unreadNotifs,
+    openNotifs,
+    closeNotifs,
+    markAllNotifsRead,
+    toggleFollow,
+    isFollowing,
+    toggleReminder,
+    pushRecentlyViewed,
+    applyDiscount,
+    clearDiscount,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

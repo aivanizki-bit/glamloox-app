@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   ChevronLeft,
@@ -20,10 +20,15 @@ export default function ProductDetail() {
   const { productId } = useParams();
   const navigate = useNavigate();
   const product = products.find((p) => p.id === productId);
-  const { addToCart, toast } = useApp();
+  const { addToCart, toast, pushRecentlyViewed } = useApp();
   const [imgIdx, setImgIdx] = useState(0);
   const [variant, setVariant] = useState(product?.variants[0]?.id ?? 'std');
   const [qty, setQty] = useState(1);
+
+  useEffect(() => {
+    if (product) pushRecentlyViewed(product.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.id]);
 
   const related = useMemo(
     () =>

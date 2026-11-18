@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   Info,
   Radio,
+  Bell,
+  BellOff,
 } from 'lucide-react';
 import { events, formatDate } from '../data/events';
 import { useApp, eur } from '../store/AppStore';
@@ -18,7 +20,7 @@ export default function EventDetail() {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const event = events.find((e) => e.id === eventId);
-  const { eventRegs, registerEvent, unregisterEvent, toast } = useApp();
+  const { eventRegs, registerEvent, unregisterEvent, toast, reminders, toggleReminder } = useApp();
   const [signing, setSigning] = useState(false);
   const [justSigned, setJustSigned] = useState(false);
 
@@ -32,6 +34,7 @@ export default function EventDetail() {
   }
 
   const registered = eventRegs.includes(event.id) || justSigned;
+  const reminderSet = reminders.includes(event.id);
 
   const signUp = () => {
     setSigning(true);
@@ -161,6 +164,18 @@ export default function EventDetail() {
             )}
           </button>
         )}
+
+        {/* Erinnerung */}
+        <button
+          onClick={() => {
+            toggleReminder(event.id);
+            toast(reminderSet ? 'Erinnerung deaktiviert' : 'Erinnerung aktiviert – wir melden uns! 💌', 'info');
+          }}
+          className={`tap mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl border text-[13px] font-bold shadow-card ${reminderSet ? 'border-royal-200 bg-royal-50 text-royal-700' : 'border-mist-200 bg-white text-slate-600'}`}
+        >
+          {reminderSet ? <Bell className="h-4 w-4" aria-hidden /> : <BellOff className="h-4 w-4" aria-hidden />}
+          {reminderSet ? 'Erinnerung ist aktiv' : 'Erinnerung für dieses Event'}
+        </button>
 
         {/* Demo-Hinweis */}
         <p className="mt-4 flex gap-2 rounded-2xl bg-white p-3.5 text-[10.5px] leading-relaxed text-slate-400 shadow-card">

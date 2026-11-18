@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Toasts } from './ui';
+import { NotificationsSheet } from './Notifications';
 
 /**
  * Desktop-Präsentation: zentriertes „iPhone“ mit hochwertigem Hintergrund.
@@ -17,6 +18,7 @@ export function PhoneShell({ children }: { children: ReactNode }) {
       <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-white text-deep-950">
         {children}
         <Toasts />
+        <NotificationsSheet />
       </div>
     );
   }
@@ -93,6 +95,7 @@ export function PhoneShell({ children }: { children: ReactNode }) {
             />
             <div className="flex h-full flex-col pt-[42px]">{children}</div>
             <Toasts />
+        <NotificationsSheet />
           </div>
         </div>
       </div>

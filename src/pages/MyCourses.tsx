@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
 import { GraduationCap, PlayCircle, Award, ArrowRight, Clock } from 'lucide-react';
-import { courses } from '../data/courses';
+import { courses, allLessonIds } from '../data/courses';
 import { useApp } from '../store/AppStore';
 import { TopBar, SmartImage, ProgressBar, EmptyState } from '../components/ui';
 
 export default function MyCourses() {
-  const { enrolled, courseProgress, certificates } = useApp();
+  const { enrolled, courseProgress, certificates, progress } = useApp();
   const myCourses = courses.filter((c) => enrolled.includes(c.id));
 
   return (
@@ -32,23 +32,42 @@ export default function MyCourses() {
             const prog = courseProgress(c.id);
             const completed = prog.pct === 100;
             const cert = certificates.find((x) => x.courseId === c.id);
+            const nextLessonId = allLessonIds(c).find((id) => !progress[id]);
             return (
               <div key={c.id} className="overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-card">
-                <Link to={`/academy/course/${c.id}`} className="tap flex gap-3 p-3">
-                  <div className="relative shrink-0">
+                <div className="flex gap-3 p-3">
+                  <Link to={`/academy/course/${c.id}`} className="tap relative shrink-0">
                     <SmartImage src={c.image} alt={c.title} className="h-[72px] w-[108px] rounded-xl" />
                     <span className="absolute inset-0 m-auto flex h-8 w-8 items-center justify-center rounded-full bg-deep-950/60 backdrop-blur">
                       <PlayCircle className="h-5 w-5 text-white" aria-hidden />
                     </span>
-                  </div>
+                  </Link>
                   <div className="min-w-0 flex-1">
-                    <p className="line-clamp-1 text-[14px] font-bold text-deep-900">{c.title}</p>
+                    <Link to={`/academy/course/${c.id}`} className="tap">
+                      <p className="line-clamp-1 text-[14px] font-bold text-deep-900">{c.title}</p>
+                    </Link>
                     <p className="mt-0.5 text-[11.5px] text-slate-400">
                       {completed ? 'Abgeschlossen 🎉' : `${prog.done} von ${prog.total} Lektionen`}
                     </p>
                     <ProgressBar pct={prog.pct} className="mt-2" />
+                    {nextLessonId && !completed && (
+                      <Link
+                        to={`/academy/course/${c.id}/lesson/${nextLessonId}`}
+                        className="tap mt-2 flex h-9 items-center justify-center gap-1.5 rounded-xl bg-deep-900 text-[12px] font-bold text-white shadow-card"
+                      >
+                        Weiterlernen <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                      </Link>
+                    )}
+                    {completed && cert && (
+                      <Link
+                        to="/profile/certificates"
+                        className="tap mt-2 flex h-9 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-gold-400 to-gold-500 text-[12px] font-bold text-white shadow-card"
+                      >
+                        <Award className="h-3.5 w-3.5" aria-hidden /> Zertifikat ansehen
+                      </Link>
+                    )}
                   </div>
-                </Link>
+                </div>
                 {completed && (
                   <div className="flex items-center justify-between border-t border-mist-200 bg-gradient-to-r from-amber-50 to-white px-4 py-2.5">
                     <span className="flex items-center gap-2 text-[12px] font-bold text-deep-900">

@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Search, X, SlidersHorizontal } from 'lucide-react';
 import { products, categories, type CategoryId } from '../data/products';
 import { useApp } from '../store/AppStore';
-import { TopBar, CartButton, Chip, ProductCard, EmptyState } from '../components/ui';
+import { TopBar, CartButton, Chip, ProductCard, ProductCardMini, EmptyState, BellButton } from '../components/ui';
 
 const vendors = ['Alle Marken', ...Array.from(new Set(products.map((p) => p.vendor)))];
 
@@ -14,7 +14,7 @@ export default function Shop() {
   const [vendor, setVendor] = useState('Alle Marken');
   const [filterOpen, setFilterOpen] = useState(false);
   const [sort, setSort] = useState<'beliebt' | 'preis-auf' | 'preis-ab'>('beliebt');
-  const { favorites } = useApp();
+  const { favorites, recentlyViewed } = useApp();
 
   const filtered = useMemo(() => {
     let list = products;
@@ -45,7 +45,12 @@ export default function Shop() {
     <div className="anim-fade-in min-h-full bg-mist-50 pb-4">
       <TopBar
         title="Shop"
-        right={<CartButton />}
+        right={
+          <>
+            <BellButton />
+            <CartButton />
+          </>
+        }
       />
 
       {/* Suche */}
@@ -120,6 +125,21 @@ export default function Shop() {
           </div>
         )}
       </div>
+
+      {/* Kürzlich angesehen */}
+      {recentlyViewed.length > 0 && (
+        <section className="pt-3">
+          <div className="flex items-center justify-between px-4">
+            <h2 className="text-[14px] font-bold text-deep-900">Kürzlich angesehen</h2>
+          </div>
+          <div className="no-scrollbar mt-2 flex gap-3 overflow-x-auto px-4 pb-1">
+            {recentlyViewed.slice(0, 6).map((id) => {
+              const p = products.find((x) => x.id === id);
+              return p ? <ProductCardMini key={id} product={p} /> : null;
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Ergebniszähler */}
       <div className="flex items-center justify-between px-4 pb-2 pt-3">

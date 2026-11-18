@@ -56,7 +56,9 @@ export default function CheckoutSuccess() {
               })}
               <div className="flex justify-between border-t border-mist-200 pt-3">
                 <span className="text-[14px] font-bold text-deep-950">Gesamt</span>
-                <span className="text-[16px] font-extrabold text-deep-950">{eur(order.total)}</span>
+                <span className="text-[16px] font-extrabold text-deep-950">
+                  {eur(order.total + (order.total >= 100 ? 0 : 4.9))}
+                </span>
               </div>
             </div>
             <div className="border-t border-mist-200 bg-mist-50 px-4 py-3">

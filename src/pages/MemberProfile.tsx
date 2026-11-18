@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { MapPin, CalendarDays } from 'lucide-react';
+import { MapPin, CalendarDays, UserPlus, UserCheck } from 'lucide-react';
 import { memberById, posts as seedPosts } from '../data/community';
 import { demoUser } from '../data/user';
 import { useApp } from '../store/AppStore';
@@ -10,8 +10,9 @@ export default function MemberProfile() {
   const { memberId } = useParams();
   const member = memberById(memberId ?? '');
   const isMe = member.id === 'm-lena';
-  const { allPosts } = useApp();
+  const { allPosts, follows, toggleFollow, toast } = useApp();
   const memberPosts = (isMe ? allPosts : seedPosts).filter((p) => p.authorId === member.id);
+  const following = follows.includes(member.id);
 
   return (
     <div className="anim-slide-in min-h-full bg-mist-50 pb-6">
@@ -41,7 +42,7 @@ export default function MemberProfile() {
       <div className="-mt-10 px-4">
         <div className="flex items-center justify-around rounded-2xl border border-mist-200 bg-white px-2 py-3.5 shadow-float">
           {[
-            ['Follower', member.followers.toString()],
+            ['Follower', (member.followers + (following ? 1 : 0)).toString()],
             ['Beiträge', ((isMe ? memberPosts.length : member.postsCount)).toString()],
             ['erhaltene ❤️', (memberPosts.reduce((n, p) => n + p.likes, 0) || 312).toString()],
           ].map(([label, value]) => (
@@ -69,13 +70,24 @@ export default function MemberProfile() {
               </span>
             ))}
           </div>
-          {isMe && (
+          {isMe ? (
             <Link
               to="/profile"
               className="tap mt-4 flex h-10 items-center justify-center rounded-xl bg-deep-900 text-[13px] font-bold text-white shadow-card"
             >
               Zum eigenen Profil wechseln
             </Link>
+          ) : (
+            <button
+              onClick={() => {
+                toggleFollow(member.id);
+                toast(following ? 'Du folgst nicht mehr: ' + member.name : 'Du folgst jetzt: ' + member.name, 'heart');
+              }}
+              className={`tap mt-4 flex h-10 items-center justify-center gap-2 rounded-xl text-[13px] font-bold shadow-card ${following ? 'border border-royal-200 bg-royal-50 text-royal-700' : 'bg-royal-600 text-white'}`}
+            >
+              {following ? <UserCheck className="h-4 w-4" aria-hidden /> : <UserPlus className="h-4 w-4" aria-hidden />}
+              {following ? 'Folgt \u2713' : 'Folgen'}
+            </button>
           )}
         </div>
       </div>

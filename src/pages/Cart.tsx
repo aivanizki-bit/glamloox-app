@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Truck } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Truck, Tag, X } from 'lucide-react';
 import { useApp, eur, productById } from '../store/AppStore';
-import { TopBar, SmartImage, EmptyState } from '../components/ui';
+import { products } from '../data/products';
+import { TopBar, SmartImage, EmptyState, ProductCardMini } from '../components/ui';
 
 export default function Cart() {
-  const { cart, setQty, removeFromCart, cartTotal, cartCount } = useApp();
+  const { cart, setQty, removeFromCart, cartTotal, cartCount, discount, applyDiscount, clearDiscount } = useApp();
   const navigate = useNavigate();
+  const [codeInput, setCodeInput] = useState('');
+  const discountAmount = discount ? (cartTotal * discount.pct) / 100 : 0;
   const freeShipAt = 100;
   const missing = Math.max(0, freeShipAt - cartTotal);
 
@@ -14,19 +18,33 @@ export default function Cart() {
       <TopBar title={`Warenkorb${cartCount > 0 ? ` (${cartCount})` : ''}`} back="/shop" />
 
       {cart.length === 0 ? (
-        <EmptyState
-          icon={<ShoppingBag className="h-7 w-7" aria-hidden />}
-          title="Dein Warenkorb ist leer"
-          text="Stöbere im Shop und entdecke Booster, Lifting-Sets und Profi-Zubehör."
-          action={
-            <Link
-              to="/shop"
-              className="tap inline-block rounded-full bg-deep-900 px-6 py-3 text-[14px] font-semibold text-white shadow-card"
-            >
-              Zum Shop
-            </Link>
-          }
-        />
+        <>
+          <EmptyState
+            icon={<ShoppingBag className="h-7 w-7" aria-hidden />}
+            title="Dein Warenkorb ist leer"
+            text="Stöbere im Shop und entdecke Booster, Lifting-Sets und Profi-Zubehör."
+            action={
+              <Link
+                to="/shop"
+                className="tap inline-block rounded-full bg-deep-900 px-6 py-3 text-[14px] font-semibold text-white shadow-card"
+              >
+                Zum Shop
+              </Link>
+            }
+          />
+          <section className="pt-2">
+          <div className="px-4 pb-2">
+            <h2 className="text-[15px] font-bold text-deep-900">Beliebte Produkte</h2>
+          </div>
+          <div className="no-scrollbar flex gap-3 overflow-x-auto px-4 pb-2">
+            {products
+              .filter((p) => ['lash-booster', 'brow-booster', 'booster-set', 'peptide-mascara', 'elan-try-me', 'pads-fusion'].includes(p.id))
+              .map((p) => (
+                <ProductCardMini key={p.id} product={p} />
+              ))}
+          </div>
+        </section>
+        </>
       ) : (
         <div className="pb-5">
           {/* Versandkosten-Fortschritt */}
@@ -119,12 +137,59 @@ export default function Cart() {
             })}
           </div>
 
+          {/* Rabattcode */}
+          <div className="mx-4 mt-3 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card">
+            {discount ? (
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                  <Tag className="h-4 w-4" aria-hidden />
+                </span>
+                <div className="flex-1">
+                  <p className="text-[13px] font-bold text-deep-900">Code {discount.code} aktiv</p>
+                  <p className="text-[11px] text-slate-400">{discount.pct} % Rabatt auf deine Bestellung</p>
+                </div>
+                <button
+                  onClick={clearDiscount}
+                  aria-label="Rabattcode entfernen"
+                  className="tap flex h-8 w-8 items-center justify-center rounded-full text-slate-400 active:bg-mist-100"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex gap-2">
+                  <input
+                    value={codeInput}
+                    onChange={(e) => setCodeInput(e.target.value)}
+                    placeholder="Rabattcode eingeben…"
+                    aria-label="Rabattcode"
+                    className="h-10 flex-1 rounded-xl border border-mist-200 bg-mist-50 px-3.5 text-[13px] font-semibold uppercase text-deep-950 outline-none placeholder:font-normal placeholder:normal-case placeholder:text-slate-400 focus:border-royal-400"
+                  />
+                  <button
+                    onClick={() => applyDiscount(codeInput) && setCodeInput('')}
+                    className="tap h-10 rounded-xl bg-deep-900 px-4 text-[13px] font-bold text-white shadow-card"
+                  >
+                    Einlösen
+                  </button>
+                </div>
+                <p className="mt-2 text-[10.5px] text-slate-400">Demo-Codes: GLAM10 (−10 %) · GLAM5 (−5 %)</p>
+              </>
+            )}
+          </div>
+
           {/* Zusammenfassung */}
           <div className="mx-4 mt-3 rounded-2xl border border-mist-200 bg-white p-4 shadow-card">
             <div className="flex justify-between text-[13.5px] text-slate-500">
               <span>Zwischensumme</span>
               <span className="font-semibold text-deep-900">{eur(cartTotal)}</span>
             </div>
+            {discount && (
+              <div className="mt-1.5 flex justify-between text-[13.5px] font-semibold text-emerald-600">
+                <span>Rabatt ({discount.code})</span>
+                <span>−{eur(discountAmount)}</span>
+              </div>
+            )}
             <div className="mt-1.5 flex justify-between text-[13.5px] text-slate-500">
               <span>Versand</span>
               <span className="font-semibold text-deep-900">
@@ -134,7 +199,7 @@ export default function Cart() {
             <div className="mt-3 flex justify-between border-t border-mist-200 pt-3">
               <span className="text-[15px] font-bold text-deep-950">Gesamt</span>
               <span className="text-[17px] font-extrabold text-deep-950">
-                {eur(cartTotal + (missing > 0 ? 4.9 : 0))}
+                {eur(cartTotal - discountAmount + (missing > 0 ? 4.9 : 0))}
               </span>
             </div>
           </div>

@@ -7,7 +7,7 @@ import { TopBar, SmartImage } from '../components/ui';
 const steps = ['Adresse', 'Zahlung', 'Prüfen'] as const;
 
 export default function Checkout() {
-  const { cart, cartTotal, checkout } = useApp();
+  const { cart, cartTotal, checkout, discount } = useApp();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [pay, setPay] = useState<'paypal' | 'klarna' | 'card'>('paypal');
@@ -34,6 +34,7 @@ export default function Checkout() {
   }
 
   const shipping = cartTotal >= 100 ? 0 : 4.9;
+  const discountAmount = discount ? (cartTotal * discount.pct) / 100 : 0;
 
   const placeOrder = () => {
     setPlacing(true);
@@ -194,6 +195,12 @@ export default function Checkout() {
                   <span>Zwischensumme</span>
                   <span className="font-semibold text-deep-900">{eur(cartTotal)}</span>
                 </div>
+                {discount && (
+                  <div className="flex justify-between font-semibold text-emerald-600">
+                    <span>Rabatt ({discount.code})</span>
+                    <span>−{eur(discountAmount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span>Versand</span>
                   <span className="font-semibold text-deep-900">
@@ -203,7 +210,7 @@ export default function Checkout() {
                 <div className="flex justify-between border-t border-mist-200 pt-2">
                   <span className="text-[15px] font-bold text-deep-950">Gesamt</span>
                   <span className="text-[17px] font-extrabold text-deep-950">
-                    {eur(cartTotal + shipping)}
+                    {eur(cartTotal - discountAmount + shipping)}
                   </span>
                 </div>
               </div>

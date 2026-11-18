@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Heart, ShoppingBag, Check, Info, Star, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, Plus, ShoppingBag, Check, Info, Star, Sparkles } from 'lucide-react';
 import { useApp, eur } from '../store/AppStore';
 import type { Product } from '../data/products';
 
@@ -150,6 +150,7 @@ export function CartButton() {
 
 // ── Produktkarte (Grid) ───────────────────────────────
 export function ProductCard({ product }: { product: Product }) {
+  const { addToCart } = useApp();
   return (
     <Link
       to={`/shop/p/${product.id}`}
@@ -163,6 +164,17 @@ export function ProductCard({ product }: { product: Product }) {
             {product.badge}
           </span>
         )}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            addToCart(product);
+          }}
+          aria-label={`${product.shortTitle} in den Warenkorb`}
+          className="tap absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-royal-600 text-white shadow-card"
+        >
+          <Plus className="h-4 w-4" aria-hidden />
+        </button>
         <div className="absolute right-2.5 top-2.5">
           <HeartButton productId={product.id} />
         </div>
@@ -180,6 +192,7 @@ export function ProductCard({ product }: { product: Product }) {
 
 // ── Produktkarte (horizontal, kompakt) ────────────────
 export function ProductCardMini({ product }: { product: Product }) {
+  const { addToCart } = useApp();
   return (
     <Link
       to={`/shop/p/${product.id}`}
@@ -187,6 +200,17 @@ export function ProductCardMini({ product }: { product: Product }) {
     >
       <div className="relative aspect-square bg-white">
         <SmartImage src={product.images[0]} alt={product.title} className="h-full w-full" />
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            addToCart(product);
+          }}
+          aria-label={`${product.shortTitle} in den Warenkorb`}
+          className="tap absolute bottom-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-royal-600 text-white shadow-card"
+        >
+          <Plus className="h-3.5 w-3.5" aria-hidden />
+        </button>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-mist-100/60 to-transparent" aria-hidden />
         {product.badge && (
           <span className="absolute left-2 top-2 rounded-full bg-deep-900/90 px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-white">
@@ -317,3 +341,6 @@ export function ProgressBar({ pct, className = '' }: { pct: number; className?: 
     </div>
   );
 }
+
+// Re-Export für einheitliche Imports
+export { BellButton } from './Notifications';

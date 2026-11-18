@@ -120,7 +120,7 @@ export default function Settings() {
               keine echten Bestellungen oder Zahlungen statt.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {['Version 0.9', 'React + Vite', 'Lokaler Demo-Speicher'].map((t) => (
+              {['Version 1.0', 'React + Vite', 'Lokaler Demo-Speicher'].map((t) => (
                 <span key={t} className="rounded-full bg-mist-100 px-2.5 py-1 text-[10.5px] font-bold text-slate-500">
                   {t}
                 </span>

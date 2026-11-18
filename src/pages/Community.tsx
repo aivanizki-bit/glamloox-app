@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, Bookmark, PenSquare } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, PenSquare, Search, X } from 'lucide-react';
 import { memberById, type Post } from '../data/community';
 import { demoUser } from '../data/user';
 import { useApp } from '../store/AppStore';
-import { TopBar, Chip, SmartImage, Avatar, EmptyState } from '../components/ui';
+import { TopBar, Chip, SmartImage, Avatar, EmptyState, BellButton } from '../components/ui';
 import { products } from '../data/products';
 
 const typeMeta: Record<Post['type'], { label: string; classes: string }> = {
@@ -130,6 +130,8 @@ export function PostCard({ post }: { post: Post }) {
 
 export default function Community() {
   const [filter, setFilter] = useState<'alle' | Post['type'] | 'gespeichert'>('alle');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const { allPosts, savedPosts } = useApp();
   const navigate = useNavigate();
 
@@ -137,8 +139,20 @@ export default function Community() {
     let list = allPosts;
     if (filter === 'gespeichert') list = list.filter((p) => savedPosts.includes(p.id));
     else if (filter !== 'alle') list = list.filter((p) => p.type === filter);
+    if (query.trim()) {
+      const q = query.trim().toLowerCase();
+      list = list.filter((p) => {
+        const author = memberById(p.authorId);
+        return (
+          p.title?.toLowerCase().includes(q) ||
+          p.text.toLowerCase().includes(q) ||
+          author.name.toLowerCase().includes(q) ||
+          (p.tag ?? '').toLowerCase().includes(q)
+        );
+      });
+    }
     return list;
-  }, [allPosts, filter, savedPosts]);
+  }, [allPosts, filter, savedPosts, query]);
 
   const filters: { id: typeof filter; label: string }[] = [
     { id: 'alle', label: 'Alle' },
@@ -150,7 +164,46 @@ export default function Community() {
 
   return (
     <div className="anim-fade-in min-h-full bg-mist-50 pb-6">
-      <TopBar title="Community" />
+      <TopBar
+        title="Community"
+        right={
+          <>
+            <button
+              onClick={() => setSearchOpen((v) => !v)}
+              aria-label="Beiträge durchsuchen"
+              className={`tap flex h-9 w-9 items-center justify-center rounded-full ${searchOpen ? 'bg-deep-900 text-white' : 'text-deep-900 active:bg-mist-100'}`}
+            >
+              <Search className="h-[19px] w-[19px]" aria-hidden />
+            </button>
+            <BellButton />
+          </>
+        }
+      />
+
+      {/* Suche */}
+      {searchOpen && (
+        <div className="sticky top-[54px] z-20 border-b border-mist-200 bg-mist-50/95 px-4 py-2.5 backdrop-blur-xl">
+          <div className="flex h-10 items-center gap-2 rounded-xl border border-mist-200 bg-white px-3 shadow-card focus-within:border-royal-400">
+            <Search className="h-[16px] w-[16px] shrink-0 text-slate-400" aria-hidden />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Beiträge, Autorinnen, Stichworte…"
+              aria-label="Community durchsuchen"
+              className="w-full bg-transparent text-[13.5px] font-medium text-deep-950 outline-none placeholder:text-slate-400"
+            />
+            {query && (
+              <button
+                onClick={() => setQuery('')}
+                aria-label="Suche löschen"
+                className="tap flex h-6 w-6 items-center justify-center rounded-full bg-mist-100 text-slate-400"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Kopfbereich */}
       <div className="bg-gradient-to-br from-deep-950 via-deep-900 to-royal-800 px-4 pb-5 pt-4">
@@ -197,9 +250,11 @@ export default function Community() {
           icon={<Bookmark className="h-7 w-7" aria-hidden />}
           title={filter === 'gespeichert' ? 'Noch nichts gespeichert' : 'Keine Beiträge'}
           text={
-            filter === 'gespeichert'
-              ? 'Tippe bei einem Beitrag auf „Speichern“, um ihn hier wiederzufinden.'
-              : 'Wechsle den Filter oder erstelle selbst den ersten Beitrag.'
+            query.trim()
+              ? `Nichts gefunden für "${query}" – versuche ein anderes Stichwort.`
+              : filter === 'gespeichert'
+                ? 'Tippe bei einem Beitrag auf „Speichern“, um ihn hier wiederzufinden.'
+                : 'Wechsle den Filter oder erstelle selbst den ersten Beitrag.'
           }
           action={
             <button
