@@ -67,6 +67,7 @@ export default function Profile() {
               {demoUser.rewardTier}-Status
             </p>
             <p className="text-[15px] font-extrabold text-white">{rewardPoints} Punkte</p>
+              <p className="text-[10.5px] font-bold text-gold-400">{rewardPoints >= 600 ? 'Diamant' : rewardPoints >= 500 ? 'Platin' : rewardPoints >= 300 ? 'Gold' : 'Start'}-Status</p>
             <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/15">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-gold-400 to-gold-500"

@@ -21,9 +21,11 @@ export default function Shop() {
   const [query, setQuery] = useState('');
   const [vendor, setVendor] = useState(() => resolveVendor(brandParam));
   const [neuOnly, setNeuOnly] = useState(false);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const [listView, setListView] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [sort, setSort] = useState<'beliebt' | 'preis-auf' | 'preis-ab'>('beliebt');
+  const [sort, setSort] = useState<'beliebt' | 'name' | 'preis-auf' | 'preis-ab'>('beliebt');
   const [favOnly, setFavOnly] = useState(false);
   const { favorites, recentlyViewed, bestAutoPromo } = useApp();
 
@@ -33,6 +35,10 @@ export default function Shop() {
     if (favOnly) list = list.filter((p) => favorites.includes(p.id));
     if (vendor !== 'Alle Marken') list = list.filter((p) => p.vendor === vendor);
     if (neuOnly) list = list.filter((p) => p.badge === 'Neu');
+    const min = parseFloat(minPrice.replace(',', '.'));
+    const max = parseFloat(maxPrice.replace(',', '.'));
+    if (!Number.isNaN(min)) list = list.filter((p) => p.price >= min);
+    if (!Number.isNaN(max)) list = list.filter((p) => p.price <= max);
     if (query.trim()) {
       const q = query.trim().toLowerCase();
       list = list.filter(
@@ -43,6 +49,7 @@ export default function Shop() {
           p.blurb.toLowerCase().includes(q),
       );
     }
+    if (sort === 'name') list = [...list].sort((a, b) => a.shortTitle.localeCompare(b.shortTitle));
     if (sort === 'preis-auf') list = [...list].sort((a, b) => a.price - b.price);
     if (sort === 'preis-ab') list = [...list].sort((a, b) => b.price - a.price);
     return list;
@@ -158,6 +165,23 @@ export default function Shop() {
               ⟲ Zurücksetzen
             </button>
           )}
+          <span className="mx-1 hidden h-6 w-px bg-mist-200 sm:block" aria-hidden />
+          <input
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value.replace(/[^\d,.]/g, ''))}
+            placeholder="ab €"
+            aria-label="Mindestpreis"
+            inputMode="decimal"
+            className="h-9 w-[72px] rounded-lg border border-mist-200 bg-white px-2.5 text-[12px] font-bold tabular-nums text-deep-900 outline-none focus:border-royal-500"
+          />
+          <input
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value.replace(/[^\d,.]/g, ''))}
+            placeholder="bis €"
+            aria-label="Höchstpreis"
+            inputMode="decimal"
+            className="h-9 w-[72px] rounded-lg border border-mist-200 bg-white px-2.5 text-[12px] font-bold tabular-nums text-deep-900 outline-none focus:border-royal-500"
+          />
         </div><span className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-mist-50 to-transparent" aria-hidden /></div>
 
         {/* Filter-Panel */}
@@ -176,6 +200,7 @@ export default function Shop() {
               {(
                 [
                   ['beliebt', 'Beliebt'],
+                  ['name', 'A–Z'],
                   ['preis-auf', 'Preis ↑'],
                   ['preis-ab', 'Preis ↓'],
                 ] as const

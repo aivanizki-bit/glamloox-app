@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, Bookmark, PenSquare, Search, X } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, PenSquare, Search, X, RefreshCw } from 'lucide-react';
 import { memberById, members, type Post } from '../data/community';
 import { Flag } from 'lucide-react';
 import { demoUser } from '../data/user';
@@ -186,7 +186,7 @@ export default function Community() {
   const [filter, setFilter] = useState<'alle' | Post['type'] | 'gespeichert'>(initialFilter);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const { allPosts, savedPosts } = useApp();
+  const { allPosts, savedPosts, toast } = useApp();
   const navigate = useNavigate();
 
   const feed = useMemo(() => {
@@ -222,6 +222,13 @@ export default function Community() {
         title="Community"
         right={
           <>
+            <button
+              onClick={() => { toast('Feed aktualisiert – 2 neue Beiträge (Demo)', 'check'); }}
+              aria-label="Feed aktualisieren"
+              className="tap flex h-9 w-9 items-center justify-center rounded-full text-deep-900 active:bg-mist-100"
+            >
+              <RefreshCw className="h-[19px] w-[19px]" aria-hidden />
+            </button>
             <button
               onClick={() => setSearchOpen((v) => !v)}
               aria-label="Beiträge durchsuchen"

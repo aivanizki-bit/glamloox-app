@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { RotateCcw } from 'lucide-react';
 import { Package, ChevronRight } from 'lucide-react';
 import { useApp, eur, productById } from '../store/AppStore';
+import { products } from '../data/products';
 import { TopBar, SmartImage, EmptyState, Chip } from '../components/ui';
 
 export default function Orders() {
-  const { orders } = useApp();
+  const { orders, addToCart, toast } = useApp();
   const [tab, setTab] = useState<'alle' | 'unterwegs' | 'geliefert'>('alle');
   const shown = tab === 'alle' ? orders : orders.filter((x) => x.status === tab);
 
@@ -52,7 +54,21 @@ export default function Orders() {
             >
               <div className="flex items-center justify-between border-b border-mist-200 bg-mist-50 px-4 py-2.5">
                 <div>
-                  <p className="text-[13.5px] font-bold text-deep-900">{o.id}</p>
+                  <p className="flex items-center gap-2 text-[13.5px] font-bold text-deep-900">{o.id}
+                    <button
+                      onClick={() => {
+                        o.items.forEach((it) => {
+                          const p = products.find((x) => x.id === it.productId);
+                          if (p) addToCart(p);
+                        });
+                        toast('Erneut im Warenkorb', 'cart');
+                      }}
+                      aria-label={o.id + ' erneut bestellen'}
+                      className="tap flex h-7 w-7 items-center justify-center rounded-full bg-royal-50 text-royal-700"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+                    </button>
+                  </p>
                   <p className="text-[11.5px] text-slate-400">
                     {new Date(o.dateISO + 'T12:00').toLocaleDateString('de-DE', {
                       day: 'numeric',

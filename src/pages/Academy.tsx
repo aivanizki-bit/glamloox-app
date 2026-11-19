@@ -181,9 +181,11 @@ export default function Academy() {
                 </span>
               </div>
               <div className="p-4">
-                <div className="flex items-center gap-2 text-[11px] font-semibold text-royal-600">
+                <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-royal-600">
                   <span className="rounded-full bg-royal-50 px-2 py-0.5">{c.level}</span>
                   <span className="text-slate-400">{c.format}</span>
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700">🎓 inkl. Zertifikat</span>
+                  <span className="text-slate-400">{c.modules.reduce((n, m) => n + m.lessons.length, 0)} Lektionen</span>
                 </div>
                 <p className="mt-1.5 text-[16px] font-bold leading-snug tracking-tight text-deep-950">
                   {c.title}

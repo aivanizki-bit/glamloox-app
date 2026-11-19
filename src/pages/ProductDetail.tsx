@@ -22,7 +22,7 @@ export default function ProductDetail() {
   const { productId } = useParams();
   const navigate = useNavigate();
   const product = products.find((p) => p.id === productId);
-  const { addToCart, toast, pushRecentlyViewed, recentlyViewed } = useApp();
+  const { addToCart, toast, pushRecentlyViewed, recentlyViewed, promotions } = useApp();
   const [imgIdx, setImgIdx] = useState(0);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [lightbox, setLightbox] = useState<number | null>(null);
@@ -240,6 +240,30 @@ export default function ProductDetail() {
         </div>
       </div>
 
+      {/* C5: Bundle-Aktions-Banner (aus Admin-Konsole) */}
+      {(() => {
+        const today = new Date().toISOString().slice(0, 10);
+        const bundle = promotions.find(
+          (pr) => pr.active && pr.type === 'bundle' && pr.startDate <= today && pr.endDate >= today && pr.bundleProduct === product?.id,
+        );
+        if (!bundle) return null;
+        return (
+          <Link
+            to={'/academy/course/' + bundle.bundleCourse}
+            className="tap mt-3 flex items-center gap-3 rounded-2xl bg-gradient-to-r from-deep-950 to-royal-800 p-3.5 shadow-card"
+          >
+            <span className="text-[22px]">🎓</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[12.5px] font-extrabold text-white">
+                {bundle.emoji} {bundle.bannerText.replace('X', String(bundle.value))}
+              </p>
+              <p className="text-[11px] text-royal-100/70">Dieses Produkt + Academy-Kurs im Bundle-Vorteil</p>
+            </div>
+            <span className="shrink-0 rounded-full bg-gold-400 px-3 py-1.5 text-[11px] font-extrabold text-deep-950">Kurs −{bundle.value} %</span>
+          </Link>
+        );
+      })()}
+
       {/* R15: Studio-Deal-Hinweis */}
       <p className="mx-4 mt-4 flex items-center gap-2 rounded-xl bg-royal-50 px-3.5 py-2.5 text-[11.5px] font-semibold text-royal-700">
         <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -342,6 +366,7 @@ export default function ProductDetail() {
           >
             <X className="h-5 w-5" aria-hidden />
           </button>
+          <p className="absolute left-4 top-4 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold text-white backdrop-blur">{lightbox + 1} / {product.images.length}</p>
           <img
             src={product.images[lightbox]}
             alt={`${product.title} vergrößert`}

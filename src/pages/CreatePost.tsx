@@ -133,7 +133,7 @@ export default function CreatePost() {
           aria-label="Beitragstext"
           className="mt-3 w-full resize-none rounded-2xl border border-mist-200 bg-white p-4 text-[14px] leading-relaxed text-deep-950 shadow-card outline-none placeholder:text-slate-400 focus:border-royal-400"
         />
-        <p className="mt-1 text-right text-[11px] text-slate-400">{text.length}/600</p>
+        <p className="mt-1 text-right text-[11px] text-slate-400">Titel {title.length}/80 · Text {text.length}/600</p>
 
         {/* Bild */}
         <div className="mt-2 rounded-2xl border border-mist-200 bg-white p-3.5 shadow-card">

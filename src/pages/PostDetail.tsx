@@ -55,6 +55,8 @@ export default function PostDetail() {
         </h1>
         <button
           onClick={async () => {
+            const data = { title: post.title ?? 'GLAMLOOX Beitrag', text: post.text.slice(0, 80), url: location.href };
+            if (navigator.share) { try { await navigator.share(data); toast('Geteilt 💙', 'star'); return; } catch { /* abgebrochen */ } }
             try { await navigator.clipboard.writeText(location.href); } catch { /* Demo */ }
             toast('Beitragslink kopiert (Demo)', 'star');
           }}

@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Share2, ShoppingBasket } from 'lucide-react';
 import { products } from '../data/products';
@@ -6,11 +7,31 @@ import { TopBar, SmartImage, EmptyState, HeartButton, ProductCardMini } from '..
 
 export default function Favorites() {
   const { favorites, addToCart, toast } = useApp();
-  const favProducts = products.filter((p) => favorites.includes(p.id));
+  const [sort, setSort] = useState<'neueste' | 'preis' | 'name'>('neueste');
+  const favProducts = useMemo(() => {
+    const list = products.filter((p) => favorites.includes(p.id));
+    if (sort === 'preis') return [...list].sort((a, b) => a.price - b.price);
+    if (sort === 'name') return [...list].sort((a, b) => a.shortTitle.localeCompare(b.shortTitle));
+    return [...list].sort((a, b) => favorites.indexOf(a.id) - favorites.indexOf(b.id));
+  }, [favorites, products, sort]);
 
   return (
     <div className="anim-slide-in min-h-full bg-mist-50 pb-6">
       <TopBar title="Meine Favoriten" back="/profile" />
+
+      {favProducts.length > 0 && (
+        <div className="flex flex-wrap gap-2 px-4 pb-1 pt-3">
+          {(['neueste', 'preis', 'name'] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setSort(s)}
+              className={'tap rounded-full px-3 py-1.5 text-[12px] font-bold ' + (sort === s ? 'bg-deep-900 text-white' : 'border border-mist-200 bg-white text-slate-500')}
+            >
+              {s === 'neueste' ? 'Zuletzt gemerkt' : s === 'preis' ? 'Preis ↑' : 'A–Z'}
+            </button>
+          ))}
+        </div>
+      )}
 
       {favProducts.length > 0 && (
         <div className="flex gap-2 px-4 pb-1 pt-3">

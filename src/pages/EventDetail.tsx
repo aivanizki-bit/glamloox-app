@@ -229,7 +229,9 @@ export default function EventDetail() {
           </button>
           <button
             onClick={async () => {
-              try { await navigator.clipboard.writeText('GLAMLOOX Live-Event: ' + event.title + ' am ' + formatDate(event.dateISO)); } catch { /* Demo */ }
+              const text = 'GLAMLOOX Live-Event: ' + event.title + ' am ' + formatDate(event.dateISO);
+              if (navigator.share) { try { await navigator.share({ title: event.title, text, url: location.href }); toast('Geteilt 💙', 'star'); return; } catch { /* abgebrochen */ } }
+              try { await navigator.clipboard.writeText(text); } catch { /* Demo */ }
               toast('Event-Text kopiert (Demo)', 'star');
             }}
             className="tap flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-mist-200 bg-white text-[12.5px] font-bold text-deep-900 shadow-card"

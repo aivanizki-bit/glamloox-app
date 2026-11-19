@@ -34,6 +34,8 @@ export interface ClientPromo {
   active: boolean;
   bannerText: string;
   emoji: string;
+  bundleProduct?: string;
+  bundleCourse?: string;
 }
 
 /** Aktive, zeitlich gültige Aktionen (aus der Admin-Konsole übernommen). */

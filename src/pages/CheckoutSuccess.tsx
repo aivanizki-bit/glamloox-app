@@ -6,7 +6,7 @@ import { TopBar, SmartImage } from '../components/ui';
 
 export default function CheckoutSuccess() {
   const { orderId } = useParams();
-  const { orders, toast } = useApp();
+  const { orders, toast, bestAutoPromo } = useApp();
   const order = orders.find((o) => o.id === orderId) ?? orders[0];
 
   return (
@@ -79,6 +79,11 @@ export default function CheckoutSuccess() {
                   </div>
                 );
               })}
+              {bestAutoPromo && (
+                <p className="mt-2 mb-2 rounded-xl bg-emerald-50 px-3 py-2 text-left text-[11.5px] font-bold text-emerald-700">
+                  {bestAutoPromo.emoji} Aktion „{bestAutoPromo.name}“ war aktiv: −{bestAutoPromo.value} % auf deinen Warenkorb
+                </p>
+              )}
               <div className="flex justify-between border-t border-mist-200 pt-3">
                 <span className="text-[14px] font-bold text-deep-950">Gesamt</span>
                 <span className="text-[16px] font-extrabold text-deep-950">

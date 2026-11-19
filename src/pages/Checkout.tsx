@@ -7,7 +7,7 @@ import { TopBar, SmartImage } from '../components/ui';
 const steps = ['Adresse', 'Zahlung', 'Prüfen'] as const;
 
 export default function Checkout() {
-  const { cart, cartTotal, checkout, discount } = useApp();
+  const { cart, cartTotal, checkout, discount, bestAutoPromo, freeShippingPromo } = useApp();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [pay, setPay] = useState<'paypal' | 'klarna' | 'card'>('paypal');
@@ -37,8 +37,12 @@ export default function Checkout() {
     );
   }
 
-  const shipping = cartTotal >= 100 ? 0 : 4.9;
-  const discountAmount = discount ? (cartTotal * discount.pct) / 100 : 0;
+  const promoFreeShip = !!freeShippingPromo && cartTotal >= freeShippingPromo.value;
+  const shipping = promoFreeShip || cartTotal >= 100 ? 0 : 4.9;
+  const codePct = discount?.pct ?? 0;
+  const autoPct = bestAutoPromo?.value ?? 0;
+  const totalPct = Math.min(60, codePct + autoPct);
+  const discountAmount = (cartTotal * totalPct) / 100;
 
   const placeOrder = () => {
     setPlacing(true);
@@ -253,6 +257,18 @@ export default function Checkout() {
                   <div className="flex justify-between font-semibold text-emerald-600">
                     <span>Rabatt ({discount.code})</span>
                     <span>−{eur(discountAmount)}</span>
+                  </div>
+                )}
+                {codePct > 0 && (
+                  <div className="flex justify-between font-semibold text-emerald-600">
+                    <span>Code {discount?.code} (−{codePct} %)</span>
+                    <span>−{eur((cartTotal * codePct) / 100)}</span>
+                  </div>
+                )}
+                {autoPct > 0 && (
+                  <div className="flex justify-between font-semibold text-emerald-600">
+                    <span>Aktion {bestAutoPromo?.emoji} (−{autoPct} %)</span>
+                    <span>−{eur((cartTotal * autoPct) / 100)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">

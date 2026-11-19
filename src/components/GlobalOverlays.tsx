@@ -148,7 +148,14 @@ export function SearchOverlay() {
   const prodHits = query ? products.filter((p) => p.shortTitle.toLowerCase().includes(query) || p.vendor.toLowerCase().includes(query)).slice(0, 4) : [];
   const courseHits = query ? courses.filter((c) => c.title.toLowerCase().includes(query)).slice(0, 3) : [];
   const postHits = query ? allPosts.filter((p) => p.title?.toLowerCase().includes(query) || p.text.toLowerCase().includes(query)).slice(0, 4) : [];
-  const go = (to: string) => {
+  const go = (to: string, term?: string) => {
+    if (term && term.trim().length > 1) {
+      try {
+        const recent = JSON.parse(localStorage.getItem('glx-recent-search') ?? '[]') as string[];
+        const next = [term.trim(), ...recent.filter((r) => r !== term.trim())].slice(0, 5);
+        localStorage.setItem('glx-recent-search', JSON.stringify(next));
+      } catch { /* Demo */ }
+    }
     closeSearch();
     setQ('');
     navigate(to);
@@ -175,11 +182,32 @@ export function SearchOverlay() {
           </button>
         </div>
         <div className="app-scroll flex-1 overflow-y-auto px-4 py-3">
-          {!query && (
-            <p className="px-1 py-6 text-center text-[13px] text-slate-400">
-              Tippe, um alles zu durchsuchen – Produkte, Kurse & Beiträge 💙
-            </p>
-          )}
+          {!query && (() => {
+            let recent: string[] = [];
+            try { recent = JSON.parse(localStorage.getItem('glx-recent-search') ?? '[]'); } catch { /* ok */ }
+            return (
+              <div>
+                {recent.length > 0 && (
+                  <div className="pb-1">
+                    <p className="px-1 pb-1.5 pt-1 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">Zuletzt gesucht</p>
+                    <div className="flex flex-wrap gap-2 px-1 pb-2">
+                      {recent.map((r) => (
+                        <button key={r} onClick={() => setQ(r)} className="tap rounded-full border border-royal-200 bg-royal-50 px-3 py-1.5 text-[12px] font-bold text-royal-700">
+                          {r}
+                        </button>
+                      ))}
+                      <button onClick={() => { localStorage.removeItem('glx-recent-search'); setQ(''); }} className="tap rounded-full px-2 py-1.5 text-[11px] font-bold text-slate-400">
+                        leeren ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <p className="px-1 py-6 text-center text-[13px] text-slate-400">
+                  Tippe, um alles zu durchsuchen – Produkte, Kurse & Beiträge 💙
+                </p>
+              </div>
+            );
+          })()}
           {query && prodHits.length === 0 && courseHits.length === 0 && postHits.length === 0 && (
             <p className="px-1 py-6 text-center text-[13px] text-slate-400">Nichts gefunden für „{q}“</p>
           )}
@@ -187,7 +215,7 @@ export function SearchOverlay() {
             <>
               <p className="px-1 pb-1.5 pt-1 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">Shop</p>
               {prodHits.map((p) => (
-                <button key={p.id} onClick={() => go(`/shop/p/${p.id}`)} className="tap flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left active:bg-mist-50">
+                <button key={p.id} onClick={() => go(`/shop/p/${p.id}`, query)} className="tap flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left active:bg-mist-50">
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-royal-50 text-royal-600">
                     <ShoppingBag className="h-4 w-4" aria-hidden />
                   </span>
@@ -203,7 +231,7 @@ export function SearchOverlay() {
             <>
               <p className="px-1 pb-1.5 pt-2 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">Academy</p>
               {courseHits.map((c) => (
-                <button key={c.id} onClick={() => go(`/academy/course/${c.id}`)} className="tap flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left active:bg-mist-50">
+                <button key={c.id} onClick={() => go(`/academy/course/${c.id}`, query)} className="tap flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left active:bg-mist-50">
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                     <GraduationCap className="h-4 w-4" aria-hidden />
                   </span>
@@ -219,7 +247,7 @@ export function SearchOverlay() {
             <>
               <p className="px-1 pb-1.5 pt-2 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">Community</p>
               {postHits.map((p) => (
-                <button key={p.id} onClick={() => go(`/community/post/${p.id}`)} className="tap flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left active:bg-mist-50">
+                <button key={p.id} onClick={() => go(`/community/post/${p.id}`, query)} className="tap flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left active:bg-mist-50">
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-pink-50 text-pink-500">
                     <MessageSquareHeart className="h-4 w-4" aria-hidden />
                   </span>

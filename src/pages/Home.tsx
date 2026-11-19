@@ -122,7 +122,9 @@ export default function Home() {
           .filter((p) => p.active && p.startDate <= today && p.endDate >= today && p.type !== 'bundle')
           .sort((a, b) => b.endDate.localeCompare(a.endDate))[0];
         if (!promo) return null;
-        const days = Math.max(0, Math.round((new Date(promo.endDate + 'T00:00').getTime() - new Date(new Date().toISOString().slice(0, 10) + 'T00:00').getTime()) / 86400000));
+        const endMs = new Date(promo.endDate + 'T23:59').getTime() - Date.now();
+        const days = Math.max(0, Math.floor(endMs / 86400000));
+        const hours = Math.max(0, Math.floor((endMs % 86400000) / 3600000));
         return (
           <Link
             to="/shop"
@@ -140,7 +142,7 @@ export default function Home() {
                   {promo.bannerText.replace('X', String(promo.value))}
                 </p>
                 <p className="text-[10.5px] text-royal-100/70">
-                  {days === 0 ? 'Nur noch heute!' : days === 1 ? 'Nur noch 1 Tag!' : 'Noch ' + days + ' Tage · bis ' + new Date(promo.endDate + 'T12:00').toLocaleDateString('de-DE', { day: '2-digit', month: 'long' })}
+                  {days === 0 ? 'Nur noch heute!' : days === 1 ? 'Nur noch 1 Tag!' : 'Noch ' + days + ' Tage ' + hours + ' Std · bis ' + new Date(promo.endDate + 'T12:00').toLocaleDateString('de-DE', { day: '2-digit', month: 'long' })}
                   {promo.type === 'code' && promo.code ? ' · Code: ' + promo.code : ''}
                 </p>
               </div>
