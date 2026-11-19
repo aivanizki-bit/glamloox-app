@@ -62,9 +62,9 @@ export function TourOverlay() {
     <div className="absolute inset-0 z-[55] flex flex-col">
       <div className="anim-fade-in absolute inset-0 bg-deep-950/70 backdrop-blur-md" onClick={close} aria-hidden />
       <div className="anim-pop relative m-auto w-full max-w-[340px] px-5">
-        <div className="overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-deep-950 via-deep-900 to-royal-800 p-5 shadow-float">
+        <div className="overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-deep-950 via-deep-900 to-royal-800 p-5 pt-4 shadow-float">
           {/* Прогресс-точки */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pb-1">
             <div className="flex gap-1.5">
               {steps.map((_, i) => (
                 <span
@@ -89,7 +89,7 @@ export function TourOverlay() {
           <h2 className="mt-4 text-[20px] font-extrabold leading-snug tracking-tight text-white">{st.title}</h2>
           <p className="mt-2 text-[13.5px] leading-relaxed text-royal-100/75">{st.text}</p>
 
-          <div className="mt-5 space-y-2.5">
+          <div className="mt-6 space-y-2.5">
             {st.cta && (
               <button
                 onClick={() => {

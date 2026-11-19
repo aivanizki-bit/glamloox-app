@@ -83,7 +83,7 @@ export default function Shop() {
         <div
           className="tap mx-4 mb-1 mt-3 flex items-center justify-between rounded-2xl bg-gradient-to-r from-deep-950 to-royal-800 px-4 py-2.5 shadow-card"
         >
-          <p className="truncate text-[12.5px] font-bold text-white">
+          <p className="line-clamp-2 text-[12.5px] font-bold leading-snug text-white">
             {bestAutoPromo.emoji} {bestAutoPromo.bannerText.replace('X', String(bestAutoPromo.value))}
           </p>
           <span className="shrink-0 rounded-full bg-gold-400 px-2.5 py-1 text-[10.5px] font-extrabold text-deep-950">
@@ -128,7 +128,7 @@ export default function Shop() {
         </div>
 
         {/* Kategorien-Chips */}
-        <div className="no-scrollbar -mx-4 mt-2.5 flex gap-2 overflow-x-auto px-4">
+        <div className="relative"><div className="no-scrollbar -mx-4 mt-2.5 flex gap-2 overflow-x-auto px-4">
           {categories.map((c) => (
             <Chip key={c.id} active={catParam === c.id} onClick={() => setCat(c.id)}>
               {c.label}
@@ -158,7 +158,7 @@ export default function Shop() {
               ⟲ Zurücksetzen
             </button>
           )}
-        </div>
+        </div><span className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-mist-50 to-transparent" aria-hidden /></div>
 
         {/* Filter-Panel */}
         {filterOpen && (
@@ -239,7 +239,7 @@ export default function Shop() {
           )}
         </p>
         <div className="flex items-center gap-2.5">
-          {favorites.length > 0 && <p className="text-[12.5px] font-medium text-slate-400">{favorites.length} ♥</p>}
+          {favorites.length > 0 && <span className="rounded-full bg-royal-50 px-2 py-0.5 text-[11.5px] font-bold text-royal-700">{favorites.length} ♥ gemerkt</span>}
           <button
             onClick={() => setListView((v) => !v)}
             aria-label={listView ? 'Grid-Ansicht' : 'Listen-Ansicht'}

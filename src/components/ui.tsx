@@ -227,6 +227,9 @@ export function ProductCardMini({ product }: { product: Product }) {
             {product.badge}
           </span>
         )}
+        <div className="absolute right-1.5 top-1.5">
+          <HeartButton productId={product.id} className="!h-7 !w-7 !bg-white/80 !shadow-none backdrop-blur" />
+        </div>
       </div>
       <div className="p-2.5">
         <p className="text-[10.5px] font-semibold uppercase tracking-wide text-royal-600">{product.vendor}</p>

@@ -128,17 +128,17 @@ export default function ProductDetail() {
           </div>
         </div>
 
-        <div className="mt-3 flex items-baseline gap-2">
+        <div className="mt-4 flex items-baseline gap-2">
           <span className="text-[26px] font-extrabold tracking-tight text-deep-950">{eur(price)}</span>
           <span className="text-[12px] font-medium text-slate-400">inkl. MwSt.</span>
         </div>
 
         {/* R1-2: Verfügbarkeit + Artikelnummer */}
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="flex items-center gap-1.5 text-[12px] font-bold text-emerald-600">
             <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden /> Auf Lager
           </span>
-          <span className="text-[11px] text-slate-400">Art.-Nr. GLX-{product.id.toUpperCase().slice(0, 8)}</span>
+          <span className="text-[11px] font-medium text-slate-400">Art.-Nr. GLX-{product.id.toUpperCase().slice(0, 8)}</span>
         </div>
 
         {/* R3: Patch-Test-Hinweis */}
@@ -354,7 +354,7 @@ export default function ProductDetail() {
       )}
 
       {/* Sticky Add-to-Cart */}
-      <div className="sticky bottom-0 z-30 mt-4 border-t border-mist-200 bg-white/95 px-4 pb-3 pt-3 backdrop-blur-xl">
+      <div className="sticky bottom-0 z-30 mt-4 border-t border-mist-200 bg-white/95 px-4 pb-3 pt-3 shadow-[0_-8px_16px_-12px_rgba(10,30,90,0.25)] backdrop-blur-xl">
         <button
           onClick={() => {
             addToCart(product, variant, qty);
@@ -365,7 +365,7 @@ export default function ProductDetail() {
           <ShoppingBag className="h-5 w-5" aria-hidden />
           In den Warenkorb · {eur(price * qty)}
         </button>
-        <p className="mt-1.5 text-center text-[10.5px] text-slate-400">
+        <p className="mt-1.5 text-center text-[10.5px] font-medium text-slate-500">
           Demo-Prototyp · keine echte Bestellung
         </p>
       </div>

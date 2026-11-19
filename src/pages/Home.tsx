@@ -82,7 +82,7 @@ export default function Home() {
     el?.addEventListener('scroll', onScroll, { passive: true });
     return () => el?.removeEventListener('scroll', onScroll);
   }, []);
-  const daysLeft = Math.max(0, Math.ceil((new Date(upcoming.dateISO + 'T' + upcoming.time.slice(0, 5)).getTime() - Date.now()) / 86400000));
+  const daysLeft = Math.max(0, Math.round((new Date(upcoming.dateISO + 'T00:00').getTime() - new Date(new Date().toISOString().slice(0, 10) + 'T00:00').getTime()) / 86400000));
   // R2: Trending-Posts (Top 3 nach Likes)
   const trending = [...seedPosts].sort((a, b) => b.likes - a.likes).slice(0, 3);
 
@@ -106,10 +106,10 @@ export default function Home() {
           <button
             onClick={openSearch}
             aria-label="Alles durchsuchen"
-            className="tap mr-1 flex h-9 items-center gap-2 rounded-full bg-mist-100 px-3.5 text-slate-400"
+            className="tap mr-1 flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full bg-mist-100 px-3.5 text-slate-400"
           >
             <Search className="h-4 w-4" aria-hidden />
-            <span className="text-[13px] font-medium">Produkte suchen…</span>
+            <span className="min-w-0 flex-1 truncate text-left text-[13px] font-medium">Produkte suchen…</span>
           </button>
           <CartButton />
         </div>
@@ -122,7 +122,7 @@ export default function Home() {
           .filter((p) => p.active && p.startDate <= today && p.endDate >= today && p.type !== 'bundle')
           .sort((a, b) => b.endDate.localeCompare(a.endDate))[0];
         if (!promo) return null;
-        const days = Math.max(0, Math.ceil((new Date(promo.endDate + 'T23:59').getTime() - Date.now()) / 86400000));
+        const days = Math.max(0, Math.round((new Date(promo.endDate + 'T00:00').getTime() - new Date(new Date().toISOString().slice(0, 10) + 'T00:00').getTime()) / 86400000));
         return (
           <Link
             to="/shop"
@@ -136,7 +136,7 @@ export default function Home() {
             <div className="relative flex items-center gap-3.5 px-4 py-3">
               <span className="text-[24px]">{promo.emoji || '✨'}</span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13.5px] font-extrabold text-white">
+                <p className="line-clamp-2 text-[13.5px] font-leading-snug font-extrabold leading-snug text-white">
                   {promo.bannerText.replace('X', String(promo.value))}
                 </p>
                 <p className="text-[10.5px] text-royal-100/70">
@@ -176,7 +176,7 @@ export default function Home() {
         </p>
 
         {/* USP-Zeile */}
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex flex-wrap gap-2">
           {[
             { icon: ShieldCheck, label: 'Ohne Hormone' },
             { icon: Leaf, label: 'Vegan' },
@@ -292,7 +292,7 @@ export default function Home() {
           <p className="text-[12.5px] font-bold text-deep-900">Nur noch {daysLeft} Tage</p>
           <p className="truncate text-[11.5px] text-slate-500">{upcoming.title}</p>
         </div>
-        <span className="shrink-0 rounded-full bg-deep-900 px-3 py-1.5 text-[11px] font-bold text-white">Anmelden</span>
+        <span className="shrink-0 rounded-full border border-deep-900/25 bg-white px-3 py-1.5 text-[11px] font-bold text-deep-900">Ansehen</span>
       </Link>
 
       {/* ── Kategorien ─────────────────────────── */}
