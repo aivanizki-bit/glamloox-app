@@ -6,11 +6,17 @@ import { products } from '../data/products';
 import { TopBar, SmartImage, EmptyState, ProductCardMini } from '../components/ui';
 
 export default function Cart() {
-  const { cart, setQty, removeFromCart, cartTotal, cartCount, discount, applyDiscount, clearDiscount } = useApp();
+  const { cart, setQty, removeFromCart, cartTotal, cartCount, discount, applyDiscount, clearDiscount, bestAutoPromo, freeShippingPromo } = useApp();
   const navigate = useNavigate();
   const [codeInput, setCodeInput] = useState('');
-  const discountAmount = discount ? (cartTotal * discount.pct) / 100 : 0;
+  // ── Aktions-Engine: Code-Rabatt + Auto-Aktion + Gratis-Versand ──
+  const codePct = discount?.pct ?? 0;
+  const autoPct = bestAutoPromo?.value ?? 0;
+  const totalPct = Math.min(60, codePct + autoPct);
+  const discountAmount = (cartTotal * totalPct) / 100;
   const freeShipAt = 100;
+  const promoFreeShip = !!freeShippingPromo && cartTotal >= freeShippingPromo.value;
+  const freeShip = promoFreeShip || cartTotal >= freeShipAt;
   const missing = Math.max(0, freeShipAt - cartTotal);
 
   return (
@@ -51,7 +57,9 @@ export default function Cart() {
           <div className="mx-4 mt-3 rounded-2xl border border-royal-100 bg-white p-3.5 shadow-card">
             <p className="flex items-center gap-2 text-[12.5px] font-semibold text-deep-900">
               <Truck className="h-4 w-4 text-royal-600" aria-hidden />
-              {missing > 0 ? (
+              {promoFreeShip ? (
+                <>Gratis-Versand durch Aktion 🎉</>
+              ) : missing > 0 ? (
                 <>
                   Noch <span className="font-bold text-royal-700">{eur(missing)}</span> bis zum
                   Gratis-Versand
@@ -143,6 +151,30 @@ export default function Cart() {
             })}
           </div>
 
+          {/* Laufende Aktion (Auto-Rabatt) */}
+          {bestAutoPromo && (
+            <div className="mx-4 mt-3 flex items-center gap-3 rounded-2xl bg-gradient-to-r from-deep-950 to-royal-800 p-3.5 shadow-card">
+              <span className="text-[22px]">{bestAutoPromo.emoji}</span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-extrabold text-white">
+                  {bestAutoPromo.bannerText.replace('X', String(bestAutoPromo.value))}
+                </p>
+                <p className="text-[11px] text-royal-100/70">
+                  Aktionsrabatt −{bestAutoPromo.value} % · automatisch im Warenkorb aktiv
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-gold-400 px-3 py-1.5 text-[12px] font-extrabold text-deep-950">
+                −{bestAutoPromo.value} %
+              </span>
+            </div>
+          )}
+
+          {promoFreeShip && (
+            <p className="mx-4 mt-2 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-[11.5px] font-bold text-emerald-700">
+              🚚 Gratis-Versand-Aktion aktiv (ab {freeShippingPromo.value.toString().replace('.', ',')} €)
+            </p>
+          )}
+
           {/* R16: Das passt dazu */}
           {(() => {
             const cartCats = new Set(cart.map((it) => productById(it.productId)?.category));
@@ -204,7 +236,9 @@ export default function Cart() {
                     Einlösen
                   </button>
                 </div>
-                <p className="mt-2 text-[10.5px] text-slate-400">Demo-Codes: GLAM10 (−10 %) · GLAM5 (−5 %)</p>
+                <p className="mt-2 text-[10.5px] text-slate-400">
+                  Demo-Codes: GLAM10 (−10 %) · GLAM5 (−5 %){bestAutoPromo ? ' · Aktionscode aus der Admin-Konsole gilt ebenfalls' : ''}
+                </p>
               </>
             )}
           </div>
@@ -215,29 +249,37 @@ export default function Cart() {
               <span>Zwischensumme</span>
               <span className="font-semibold text-deep-900">{eur(cartTotal)}</span>
             </div>
-            {discount && (
+            {codePct > 0 && (
               <div className="mt-1.5 flex justify-between text-[13.5px] font-semibold text-emerald-600">
-                <span>Rabatt ({discount.code})</span>
-                <span>−{eur(discountAmount)}</span>
+                <span>Code {discount?.code} (−{codePct} %)</span>
+                <span>−{eur((cartTotal * codePct) / 100)}</span>
+              </div>
+            )}
+            {autoPct > 0 && (
+              <div className="mt-1.5 flex justify-between text-[13.5px] font-semibold text-emerald-600">
+                <span>
+                  Aktion {bestAutoPromo?.emoji} {bestAutoPromo?.name} (−{autoPct} %)
+                </span>
+                <span>−{eur((cartTotal * autoPct) / 100)}</span>
               </div>
             )}
             <div className="mt-1.5 flex justify-between text-[13.5px] text-slate-500">
               <span>Versand</span>
               <span className="font-semibold text-deep-900">
-                {missing > 0 ? eur(4.9) : 'Kostenlos'}
+                {freeShip ? 'Kostenlos' : eur(4.9)}
               </span>
             </div>
             <div className="mt-3 flex justify-between border-t border-mist-200 pt-3">
               <span className="text-[15px] font-bold text-deep-950">Gesamt</span>
               <span className="text-[17px] font-extrabold text-deep-950">
-                {eur(cartTotal - discountAmount + (missing > 0 ? 4.9 : 0))}
+                {eur(cartTotal - discountAmount + (freeShip ? 0 : 4.9))}
               </span>
             </div>
-            {(discount || missing === 0) && (
+            {(totalPct > 0 || freeShip) && (
               <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-[11.5px] font-bold text-emerald-700">
-                🎉 Deine Ersparnis: {discount ? eur(discountAmount) + ' Rabatt' : ''}
-                {discount && missing === 0 ? ' + ' : ''}
-                {missing === 0 ? 'Gratis-Versand' : ''}
+                🎉 Deine Ersparnis: {totalPct > 0 ? eur(discountAmount) + ' Rabatt' : ''}
+                {totalPct > 0 && freeShip ? ' + ' : ''}
+                {freeShip ? 'Gratis-Versand' : ''}
               </p>
             )}
           </div>

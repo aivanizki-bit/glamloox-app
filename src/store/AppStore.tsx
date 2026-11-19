@@ -21,6 +21,27 @@ import {
   type DemoOrder,
 } from '../data/user';
 
+export interface ClientPromo {
+  id: string;
+  name: string;
+  type: 'prozent' | 'fix' | 'code' | 'versand' | 'bundle';
+  value: number;
+  code: string;
+  scope: 'alles' | 'kategorie' | 'eigenmarken';
+  category: string;
+  startDate: string;
+  endDate: string;
+  active: boolean;
+  bannerText: string;
+  emoji: string;
+}
+
+/** Aktive, zeitlich gültige Aktionen (aus der Admin-Konsole übernommen). */
+export const isPromoRunning = (p: ClientPromo): boolean => {
+  const today = new Date().toISOString().slice(0, 10);
+  return p.active && p.startDate <= today && p.endDate >= today;
+};
+
 export interface CartItem {
   productId: string;
   variantId: string;
@@ -76,6 +97,7 @@ interface PersistedState {
   comments: Record<string, Comment[]>;
   userPosts: Post[];
   rewardPoints: number;
+  promotions: ClientPromo[];
   adminApplied: string;
   notifications: NotifItem[];
   follows: string[];
@@ -109,6 +131,7 @@ const DEFAULT_STATE: PersistedState = {
   comments: {},
   userPosts: [],
   rewardPoints: demoUser.rewardPoints,
+  promotions: [],
   adminApplied: '',
   notifications: SEED_NOTIFS,
   follows: [],
@@ -192,6 +215,8 @@ export interface AppState extends PersistedState {
   pushRecentlyViewed: (productId: string) => void;
   applyDiscount: (code: string) => boolean;
   clearDiscount: () => void;
+  bestAutoPromo: ClientPromo | null;
+  freeShippingPromo: ClientPromo | null;
   applyAdminData: (json: string, silent?: boolean) => boolean;
   // Misc
   toasts: Toast[];
@@ -655,6 +680,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const applyDiscount = useCallback(
     (code: string): boolean => {
       const c = code.trim().toUpperCase();
+      // 1) Admin-Kampagnen-Codes (aus der Admin-Konsole übernommen)
+      const promo = state.promotions.find((p) => isPromoRunning(p) && p.type === 'code' && p.code.toUpperCase() === c);
+      if (promo) {
+        setState((s) => ({ ...s, discount: { code: c, pct: promo.value } }));
+        toast(`Aktion ${promo.name}: −${promo.value} % aktiviert 🎉`, 'star');
+        return true;
+      }
       if (c === 'GLAM10') {
         setState((s) => ({ ...s, discount: { code: 'GLAM10', pct: 10 } }));
         toast('Rabattcode GLAM10 aktiviert – 10 %', 'star');
@@ -682,6 +714,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           posts?: { id: string; hidden: boolean }[];
           outbox?: { id: string; title: string; body: string; target: string; sentISO: string }[];
           rewardPoints?: number;
+          promotions?: ClientPromo[];
         };
         if (!d.products || !d.events) return false;
         let changed = 0;
@@ -711,6 +744,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const p = seedPosts.find((x) => x.id === ph.id);
           if (p) { (p as Post & { hidden?: boolean }).hidden = ph.hidden; changed++; }
         }
+        setState((s) => ({
+          ...s,
+          promotions: d.promotions ?? [],
+        }));
         setState((s) => {
           const newNotifs = (d.outbox ?? []).map((n) => ({
             id: 'admin-' + n.id,
@@ -747,6 +784,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── Aktions-Engine: beste Auto-Aktion & Gratis-Versand ──
+  const bestAutoPromo = useMemo(() => {
+    return (
+      state.promotions
+        .filter((p) => isPromoRunning(p) && p.type === 'prozent' && p.scope === 'alles')
+        .sort((a, b) => b.value - a.value)[0] ?? null
+    );
+  }, [state.promotions]);
+  const freeShippingPromo = useMemo(() => state.promotions.filter((p) => isPromoRunning(p) && p.type === 'versand')[0] ?? null, [state.promotions]);
 
   // Zertifikate dynamisch aus earnedCerts generieren
   const certificates = useMemo(
@@ -820,6 +867,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     pushRecentlyViewed,
     applyDiscount,
     clearDiscount,
+    bestAutoPromo,
+    freeShippingPromo,
     applyAdminData,
   };
 

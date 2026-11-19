@@ -52,7 +52,7 @@ const heroSlides = [
 ];
 
 export default function Home() {
-  const { courseProgress, enrolled, pushHintDismissed, dismissPushHint, toast, rewardPoints, recentlyViewed, openSearch } = useApp();
+  const { courseProgress, enrolled, pushHintDismissed, dismissPushHint, toast, rewardPoints, recentlyViewed, openSearch, promotions } = useApp();
   const [mail, setMail] = useState('');
   const [showTop, setShowTop] = useState(false);
   const slideRef = useRef<HTMLDivElement>(null);
@@ -114,6 +114,43 @@ export default function Home() {
           <CartButton />
         </div>
       </header>
+
+      {/* ── Aktions-Banner (aus der Admin-Konsole) ── */}
+      {(() => {
+        const today = new Date().toISOString().slice(0, 10);
+        const promo = promotions
+          .filter((p) => p.active && p.startDate <= today && p.endDate >= today && p.type !== 'bundle')
+          .sort((a, b) => b.endDate.localeCompare(a.endDate))[0];
+        if (!promo) return null;
+        const days = Math.max(0, Math.ceil((new Date(promo.endDate + 'T23:59').getTime() - Date.now()) / 86400000));
+        return (
+          <Link
+            to="/shop"
+            className="tap relative block overflow-hidden bg-gradient-to-r from-deep-950 via-deep-900 to-royal-800"
+          >
+            <div
+              className="pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full opacity-30 blur-2xl"
+              style={{ background: 'radial-gradient(circle, #7A96F8, transparent 70%)' }}
+              aria-hidden
+            />
+            <div className="relative flex items-center gap-3.5 px-4 py-3">
+              <span className="text-[24px]">{promo.emoji || '✨'}</span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13.5px] font-extrabold text-white">
+                  {promo.bannerText.replace('X', String(promo.value))}
+                </p>
+                <p className="text-[10.5px] text-royal-100/70">
+                  {days === 0 ? 'Nur noch heute!' : days === 1 ? 'Nur noch 1 Tag!' : 'Noch ' + days + ' Tage · bis ' + new Date(promo.endDate + 'T12:00').toLocaleDateString('de-DE', { day: '2-digit', month: 'long' })}
+                  {promo.type === 'code' && promo.code ? ' · Code: ' + promo.code : ''}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-white px-3.5 py-1.5 text-[12px] font-extrabold text-deep-900 shadow-card">
+                Jetzt sparen
+              </span>
+            </div>
+          </Link>
+        );
+      })()}
 
       {/* ── Hero ───────────────────────────────── */}
       <section className="anim-fade-up relative overflow-hidden bg-gradient-to-br from-deep-950 via-deep-900 to-royal-800 px-4 pb-6 pt-6">

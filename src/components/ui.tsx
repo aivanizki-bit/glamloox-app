@@ -150,7 +150,7 @@ export function CartButton() {
 
 // ── Produktkarte (Grid) ───────────────────────────────
 export function ProductCard({ product }: { product: Product }) {
-  const { addToCart } = useApp();
+  const { addToCart, bestAutoPromo } = useApp();
   return (
     <Link
       to={`/shop/p/${product.id}`}
@@ -175,6 +175,11 @@ export function ProductCard({ product }: { product: Product }) {
         >
           <Plus className="h-4 w-4" aria-hidden />
         </button>
+        {bestAutoPromo && (
+          <span className="absolute bottom-2.5 left-2.5 rounded-full bg-gold-400 px-2 py-0.5 text-[10px] font-extrabold text-deep-950 shadow-card">
+            Aktion −{bestAutoPromo.value} %
+          </span>
+        )}
         <div className="absolute right-2.5 top-2.5">
           <HeartButton productId={product.id} />
         </div>
@@ -192,7 +197,7 @@ export function ProductCard({ product }: { product: Product }) {
 
 // ── Produktkarte (horizontal, kompakt) ────────────────
 export function ProductCardMini({ product }: { product: Product }) {
-  const { addToCart } = useApp();
+  const { addToCart, bestAutoPromo } = useApp();
   return (
     <Link
       to={`/shop/p/${product.id}`}
@@ -200,6 +205,11 @@ export function ProductCardMini({ product }: { product: Product }) {
     >
       <div className="relative aspect-square bg-white">
         <SmartImage src={product.images[0]} alt={product.title} className="h-full w-full" />
+        {bestAutoPromo && (
+          <span className="absolute bottom-1.5 left-2 rounded-full bg-gold-400 px-1.5 py-0.5 text-[9px] font-extrabold text-deep-950">
+            −{bestAutoPromo.value} %
+          </span>
+        )}
         <button
           onClick={(e) => {
             e.preventDefault();

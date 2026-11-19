@@ -25,7 +25,7 @@ export default function Shop() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [sort, setSort] = useState<'beliebt' | 'preis-auf' | 'preis-ab'>('beliebt');
   const [favOnly, setFavOnly] = useState(false);
-  const { favorites, recentlyViewed } = useApp();
+  const { favorites, recentlyViewed, bestAutoPromo } = useApp();
 
   const filtered = useMemo(() => {
     let list = products;
@@ -77,6 +77,20 @@ export default function Shop() {
           </>
         }
       />
+
+      {/* Aktions-Streifen */}
+      {bestAutoPromo && (
+        <div
+          className="tap mx-4 mb-1 mt-3 flex items-center justify-between rounded-2xl bg-gradient-to-r from-deep-950 to-royal-800 px-4 py-2.5 shadow-card"
+        >
+          <p className="truncate text-[12.5px] font-bold text-white">
+            {bestAutoPromo.emoji} {bestAutoPromo.bannerText.replace('X', String(bestAutoPromo.value))}
+          </p>
+          <span className="shrink-0 rounded-full bg-gold-400 px-2.5 py-1 text-[10.5px] font-extrabold text-deep-950">
+            −{bestAutoPromo.value} %
+          </span>
+        </div>
+      )}
 
       {/* Suche */}
       <div className="sticky top-[54px] z-20 border-b border-mist-200 bg-mist-50/95 px-4 pb-3 pt-3 backdrop-blur-xl">
